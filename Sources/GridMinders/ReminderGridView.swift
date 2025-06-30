@@ -81,9 +81,10 @@ struct ReminderGridView: View {
     private func handleDrop(providers: [NSItemProvider], important: Bool, urgent: Bool) -> Bool {
         for provider in providers {
             _ = provider.loadObject(ofClass: NSString.self) { object, _ in
-                guard let id = object as String? else { return }
+                guard let id = object as? NSString else { return }
+                let idString = id as String
                 DispatchQueue.main.async {
-                    if let reminder = fetcher.reminders.first(where: { $0.calendarItemIdentifier == id }) {
+                    if let reminder = fetcher.reminders.first(where: { $0.calendarItemIdentifier == idString }) {
                         fetcher.modify(reminder, important: important, urgent: urgent)
                     }
                 }
