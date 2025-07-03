@@ -2,6 +2,31 @@ import EventKit
 import Combine
 
 final class ReminderFetcher: ObservableObject {
+    @Published private(set) var calendars: [EKCalendar] = []
+    @Published var includedCalendarIDs: Set<String> = [] // IDs of included lists
+    @Published var excludedCalendarIDs: Set<String> = [] // IDs of excluded lists
+    @Published var useExclusion: Bool = false // false = include mode, true = exclude mode
+
+    private let includedKey = "IncludedCalendarIDs"
+    private let excludedKey = "ExcludedCalendarIDs"
+    private let useExclusionKey = "UseExclusion"
+
+    func loadUserSelection() {
+        if let included = UserDefaults.standard.array(forKey: includedKey) as? [String] {
+            includedCalendarIDs = Set(included)
+        }
+        if let excluded = UserDefaults.standard.array(forKey: excludedKey) as? [String] {
+            excludedCalendarIDs = Set(excluded)
+        }
+        useExclusion = UserDefaults.standard.bool(forKey: useExclusionKey)
+    }
+
+    func saveUserSelection() {
+        UserDefaults.standard.set(Array(includedCalendarIDs), forKey: includedKey)
+        UserDefaults.standard.set(Array(excludedCalendarIDs), forKey: excludedKey)
+        UserDefaults.standard.set(useExclusion, forKey: useExclusionKey)
+    }
+
     @Published private(set) var reminders: [EKReminder] = []
     private let store = EKEventStore()
     private var changeCancellable: AnyCancellable?
@@ -13,13 +38,16 @@ final class ReminderFetcher: ObservableObject {
                 guard let self = self else { return }
                 self.store.reset()
                 self.loadReminders()
+                self.loadCalendars()
             }
+        loadUserSelection()
     }
 
     func requestAccess() {
         store.requestAccess(to: .reminder) { granted, _ in
             if granted {
                 self.loadReminders()
+                self.loadCalendars()
             }
         }
     }
@@ -31,6 +59,24 @@ final class ReminderFetcher: ObservableObject {
                 let incomplete = reminders?.filter { !$0.isCompleted } ?? []
                 self.reminders = incomplete
             }
+        }
+    }
+
+    func loadCalendars() {
+        let allCalendars = store.calendars(for: .reminder)
+        DispatchQueue.main.async {
+            self.calendars = allCalendars
+        }
+    }
+
+    // Returns reminders filtered by user selection
+    func filteredReminders() -> [EKReminder] {
+        if useExclusion {
+            if excludedCalendarIDs.isEmpty { return reminders }
+            return reminders.filter { !excludedCalendarIDs.contains($0.calendar.calendarIdentifier) }
+        } else {
+            if includedCalendarIDs.isEmpty { return reminders }
+            return reminders.filter { includedCalendarIDs.contains($0.calendar.calendarIdentifier) }
         }
     }
 

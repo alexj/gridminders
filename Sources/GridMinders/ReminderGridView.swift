@@ -4,6 +4,7 @@ import AppKit
 import UniformTypeIdentifiers
 
 struct ReminderGridView: View {
+    @State private var showingListSelector = false
     @ObservedObject var fetcher: ReminderFetcher
 
     private func categorize(_ reminder: EKReminder) -> (important: Bool, urgent: Bool) {
@@ -28,13 +29,24 @@ struct ReminderGridView: View {
     }
 
     var body: some View {
-        let list = fetcher.reminders
+        let list = fetcher.filteredReminders()
         let q1 = list.filter { quadrant($0) == 1 }
         let q2 = list.filter { quadrant($0) == 2 }
         let q3 = list.filter { quadrant($0) == 3 }
         let q4 = list.filter { quadrant($0) == 4 }
 
         return VStack {
+            HStack {
+                Button(action: { showingListSelector = true }) {
+                    Label("Select Lists", systemImage: "list.bullet")
+                        .padding(6)
+                }
+                .sheet(isPresented: $showingListSelector) {
+                    ListSelectorView(fetcher: fetcher, isPresented: $showingListSelector)
+                }
+                Spacer()
+            }
+            .padding([.top, .horizontal])
             HStack {
                 quadrantView(title: "Important & Urgent", reminders: q1, important: true, urgent: true)
                 quadrantView(title: "Important & Not Urgent", reminders: q2, important: true, urgent: false)
