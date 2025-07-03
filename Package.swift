@@ -13,6 +13,11 @@ let package = Package(
         .executableTarget(
             name: "GridMinders",
             path: "Sources/GridMinders"
+        ),
+        .testTarget(
+            name: "GridMindersTests",
+            dependencies: ["GridMinders"],
+            path: "Tests"
         )
     ]
 )

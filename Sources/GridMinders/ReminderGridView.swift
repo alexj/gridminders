@@ -7,14 +7,40 @@ struct ReminderGridView: View {
     @State private var showingListSelector = false
     @ObservedObject var fetcher: ReminderFetcher
 
-    private func categorize(_ reminder: EKReminder) -> (important: Bool, urgent: Bool) {
-        // EventKit does not expose the "flagged" state, so we only
-        // treat reminders with the highest priority as important.
-        let important = reminder.priority == 1
+    func categorize(_ reminder: EKReminder) -> (important: Bool, urgent: Bool) {
+        // Phase 2: Updated logic for 'important' and 'urgent'
+        let now = Date()
+        let calendar = Calendar.current
         var urgent = false
+        var important = false
+
+        // Urgent: overdue OR due in next 48h OR tag 'urgent'
         if let due = reminder.dueDateComponents?.date {
-            urgent = Calendar.current.isDateInToday(due) || due < Date().addingTimeInterval(24*60*60)
+            if due < now {
+                urgent = true
+            } else if due <= now.addingTimeInterval(48 * 60 * 60) {
+                urgent = true
+            }
         }
+        if let tags = reminder.value(forKey: "structuredLocation") as? [String] {
+            // Defensive: EventKit doesn't have tags, but in case of extension
+            urgent = urgent || tags.contains(where: { $0.localizedCaseInsensitiveContains("urgent") })
+        } else if let notes = reminder.notes {
+            // Fallback: treat #urgent in notes as a tag
+            urgent = urgent || notes.localizedCaseInsensitiveContains("#urgent")
+        }
+        // Also check title for [urgent] as a workaround
+        urgent = urgent || reminder.title.localizedCaseInsensitiveContains("urgent")
+
+        // Important: high priority OR tag 'important'
+        important = reminder.priority == 1
+        if let tags = reminder.value(forKey: "structuredLocation") as? [String] {
+            important = important || tags.contains(where: { $0.localizedCaseInsensitiveContains("important") })
+        } else if let notes = reminder.notes {
+            important = important || notes.localizedCaseInsensitiveContains("#important")
+        }
+        important = important || reminder.title.localizedCaseInsensitiveContains("important")
+
         return (important, urgent)
     }
 

@@ -15,15 +15,15 @@ This document outlines a phased strategy for implementing the planned changes to
 ---
 
 ## Phase 2: Redefine 'Urgent' and 'Important'
-- [ ] Update 'Urgent' definition:
-  - [ ] Item is overdue
-  - [ ] Item is due within the next 48 hours
-  - [ ] Item has a tag of 'urgent' (case-insensitive)
-- [ ] Update 'Important' definition:
-  - [ ] Item has 'high' priority
-  - [ ] Item has a tag of 'important' (case-insensitive)
-- [ ] Refactor relevant logic and UI indicators to use new definitions
-- [ ] Add/Update tests for new definitions
+- [✔] Update 'Urgent' definition:
+  - [✔] Item is overdue
+  - [✔] Item is due within the next 48 hours
+  - [✔] Item has a tag of 'urgent' (case-insensitive)
+- [✔] Update 'Important' definition:
+  - [✔] Item has 'high' priority
+  - [✔] Item has a tag of 'important' (case-insensitive)
+- [✔] Refactor relevant logic and UI indicators to use new definitions
+- [✔] Add/Update tests for new definitions
 
 ---
 

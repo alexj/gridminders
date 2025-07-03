@@ -5,8 +5,8 @@ The reminders list updates automatically whenever tasks change in the Reminders 
 
 The app requests permission to access the Reminders database using `EventKit`. Completed tasks are filtered out so only open reminders appear. Tasks are categorized as:
 
-- **Important** if they have the highest priority.
-- **Urgent** if they are due today or within the next 24 hours.
+- **Important** if they have high priority or are tagged with 'important' (case-insensitive, in the title or notes).
+- **Urgent** if they are overdue, due within the next 48 hours, or tagged with 'urgent' (case-insensitive, in the title or notes).
 
 The four quadrants are:
 
