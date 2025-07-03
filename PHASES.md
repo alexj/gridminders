@@ -6,11 +6,11 @@ This document outlines a phased strategy for implementing the planned changes to
 ---
 
 ## Phase 1: List Selection & Filtering
-- [ ] Add UI for users to select one or more Lists as sources for grid items
-- [ ] Default behavior: show items from all lists
-- [ ] Add advanced option to exclude specific lists instead of including them
-- [ ] Update grid logic to only show items from selected lists (or all if none selected)
-- [ ] Persist user selection (e.g., in user defaults or app state)
+- [✔] Add UI for users to select one or more Lists as sources for grid items
+- [✔] Default behavior: show items from all lists
+- [✔] Add advanced option to exclude specific lists instead of including them
+- [✔] Update grid logic to only show items from selected lists (or all if none selected)
+- [✔] Persist user selection (e.g., in user defaults or app state)
 
 ---
 

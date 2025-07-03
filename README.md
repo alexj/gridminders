@@ -22,12 +22,20 @@ You can also drag a reminder from one quadrant to another:
 - Dropping one into an urgent quadrant assigns it a due date of today.
 - Dragging an urgent reminder into a non‑urgent quadrant removes its due date.
 
-## Building
+## List Selection & Filtering (Phase 1)
 
-The project is a Swift Package. Open the directory in Xcode (12 or later) or build from the command line:
+You can now choose which reminder lists (calendars) are used as sources for grid items:
+- Click the **Select Lists** button at the top of the app window.
+- In the dialog, check the lists you want to include (or exclude, using the advanced toggle).
+- By default, reminders from all lists are shown.
+- Your selection is saved and restored automatically.
+
+## Building & Running
+
+The project is a Swift Package. You can build and run from the command line:
 
 ```bash
-swift build
+swift run
 ```
 
-Running the resulting executable will launch the GridMinders app.
+This will launch the GridMinders app on your Mac.
