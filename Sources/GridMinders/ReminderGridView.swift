@@ -37,7 +37,7 @@ private struct SectionView: View {
                             Text(parent.title)
                                 .bold()
                                 .onDrag {
-                                    NSItemProvider(object: parent.calendarItemIdentifier as NSString)
+                                    NSItemProvider(object: ("section:" + section.section) as NSString)
                                 }
                         } else {
                             Image(systemName: "circle")
@@ -200,9 +200,32 @@ struct ReminderGridView: View {
                 guard let id = object as? NSString else { return }
                 let idString = id as String
                 DispatchQueue.main.async {
-                    if let reminder = fetcher.reminders.first(where: { $0.calendarItemIdentifier == idString }) {
-                        // Determine previous state for undo/redo
-                        let prev = categorize(reminder)
+                    if idString.hasPrefix("section:") {
+                        // Section drag: extract section name
+                        let sectionName = String(idString.dropFirst("section:".count))
+                        // Find all reminders in this section
+                        let sectionReminders = fetcher.reminders.filter { reminder in
+                            // Use the same parseSectionTag logic as ReminderFetcher
+                            let sources: [String?] = [reminder.title, reminder.notes]
+                            for textOpt in sources {
+                                guard let text = textOpt else { continue }
+                                let pattern = "#section-([A-Za-z0-9_-]+)"
+                                if let match = text.range(of: pattern, options: .regularExpression) {
+                                    let name = text[match].replacingOccurrences(of: "#section-", with: "")
+                                    if name.caseInsensitiveCompare(sectionName) == .orderedSame { return true }
+                                }
+                            }
+                            return false
+                        }
+                        // Optionally set undoManager from environment if available
+                        if fetcher.undoManager == nil, let window = NSApp.keyWindow {
+                            fetcher.undoManager = window.undoManager
+                        }
+                        for reminder in sectionReminders {
+                            fetcher.modify(reminder, important: important, urgent: urgent)
+                        }
+                    } else if let reminder = fetcher.reminders.first(where: { $0.calendarItemIdentifier == idString }) {
+                        // Single reminder drag
                         // Optionally set undoManager from environment if available
                         if fetcher.undoManager == nil, let window = NSApp.keyWindow {
                             fetcher.undoManager = window.undoManager
