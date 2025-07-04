@@ -36,6 +36,10 @@ You can now choose which reminder lists (calendars) are used as sources for grid
 - By default, reminders from all lists are shown.
 - Your selection is saved and restored automatically.
 
+## Requirements
+macOS 13+
+iOS 16+
+
 ## Building & Running
 
 The project is a Swift Package. You can build and run from the command line:

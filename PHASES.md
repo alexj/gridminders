@@ -49,9 +49,20 @@ This document outlines a phased strategy for implementing the planned changes to
 - [✔] Add/Update tests to verify that only tags control urgency and importance.
 - [✔] Review and update README and help guides to reflect the new logic.
 
----
+### Phase 4: Improved item handling
+- [✔] Support grouping/sections of reminders:
+  - [✔] Display items within a section as children of that parent within the correct quadrant. (Parent and children are now grouped by #section-Name tag. Parent must have the same #section-Name tag as children, in title or notes.)
+- [ ] When a section of reminders is moved to a different quadrant:
+  - [ ] All items in that section have the same tags applied or removed, as applicable.
+- [ ] Preserve and sync the order of items with the Reminders app.
+- [ ] Items should be sorted by priority within their sections and quadrants:
+  - [ ] Items with 'high' priority are always at the top of their section, overruling any manual order.
+- [ ] Items within a quadrant should be sorted in the same order as in the Reminders app.
+- [ ] Allow manual sorting of items by dragging within a quadrant or section:
+  - [ ] Update the order in the Reminders app accordingly.
 
-## Phase 4: Dock Icon Integration
+
+## Phase 5: Dock Icon Integration
 - Add a dock icon for the app
 - Implement logic to open or focus the app when the dock icon is clicked
 - Ensure compatibility with macOS conventions
@@ -59,7 +70,7 @@ This document outlines a phased strategy for implementing the planned changes to
 
 ---
 
-## Phase 5: Final QA & Documentation
+## Phase 6: Final QA & Documentation
 - Comprehensive testing of all new features and changes
 - Update user documentation and help guides
 - Gather user feedback (if possible)

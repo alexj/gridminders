@@ -30,6 +30,67 @@ final class ReminderFetcher: ObservableObject {
     }
 
     @Published private(set) var reminders: [EKReminder] = []
+
+    /// Computed: Returns reminders grouped by #section-Name tag
+    var sectionedReminders: [(section: String, reminders: [EKReminder])] {
+        return Dictionary(grouping: reminders) { reminder -> String? in
+            parseSectionTag(reminder)
+        }
+        .compactMap { key, value -> (String, [EKReminder])? in
+            guard let section = key else { return nil }
+            // Sort reminders: parent (title matches section name) first, then others
+            let prettySection = prettifySectionName(section)
+            func normalize(_ s: String) -> String {
+                s.lowercased()
+                    .replacingOccurrences(of: " ", with: "")
+                    .replacingOccurrences(of: "-", with: "")
+                    .replacingOccurrences(of: "_", with: "")
+            }
+            let sorted = value.sorted { lhs, rhs in
+                let lhsIsParent = normalize(lhs.title) == normalize(prettySection)
+                let rhsIsParent = normalize(rhs.title) == normalize(prettySection)
+                if lhsIsParent && !rhsIsParent { return true }
+                if !lhsIsParent && rhsIsParent { return false }
+                return lhs.title < rhs.title // fallback: alphabetical
+            }
+            return (section, sorted)
+        }
+        // Sort sections alphabetically (pretty-printed)
+        .sorted { prettifySectionName($0.0).localizedCaseInsensitiveCompare(prettifySectionName($1.0)) == .orderedAscending }
+        .map { (prettifySectionName($0.0), $0.1) }
+    }
+
+    /// Computed: Returns reminders without a #section tag
+    var ungroupedReminders: [EKReminder] {
+        reminders.filter { parseSectionTag($0) == nil }
+    }
+
+    /// Helper: Extracts section name from #section-Name tag in notes or title
+    private func parseSectionTag(_ reminder: EKReminder) -> String? {
+        let sources: [String?] = [reminder.title, reminder.notes]
+        for textOpt in sources {
+            guard let text = textOpt else { continue }
+            let pattern = "#section-([A-Za-z0-9_-]+)"
+            if let match = text.range(of: pattern, options: .regularExpression) {
+                let tag = String(text[match])
+                // Remove #section- prefix
+                if let dashIdx = tag.firstIndex(of: "-") {
+                    let name = tag[tag.index(after: dashIdx)...]
+                    return String(name)
+                }
+            }
+        }
+        return nil
+    }
+
+    /// Helper: Prettify section name for display (replace - and _ with space, capitalize words)
+    private func prettifySectionName(_ raw: String) -> String {
+        raw.replacingOccurrences(of: "_", with: " ")
+            .replacingOccurrences(of: "-", with: " ")
+            .split(separator: " ")
+            .map { $0.capitalized }
+            .joined(separator: " ")
+    }
     private let store = EKEventStore()
     private var changeCancellable: AnyCancellable?
 

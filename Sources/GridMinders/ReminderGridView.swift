@@ -3,6 +3,86 @@ import EventKit
 import AppKit
 import UniformTypeIdentifiers
 
+// MARK: - SectionView Helper
+private struct SectionView: View {
+    let section: (section: String, reminders: [EKReminder])
+    let visibleReminders: [EKReminder]
+    @ObservedObject var fetcher: ReminderFetcher
+
+    var parent: EKReminder? {
+        section.reminders.first { reminder in
+            let normTitle = reminder.title.lowercased().replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "-", with: "").replacingOccurrences(of: "_", with: "")
+            let normSection = section.section.lowercased().replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "-", with: "").replacingOccurrences(of: "_", with: "")
+            return normTitle == normSection
+        }
+    }
+    var body: some View {
+        // Always render parent+children as a single block, preserving order
+        let parentID = parent?.calendarItemIdentifier
+        let parentInQuadrant = parentID != nil && visibleReminders.contains(where: { $0.calendarItemIdentifier == parentID })
+        let visibleIDs = Set(visibleReminders.map { $0.calendarItemIdentifier })
+        // Only show section if parent or any children are present in quadrant
+        if parentInQuadrant || section.reminders.contains(where: { $0.calendarItemIdentifier != parentID && visibleIDs.contains($0.calendarItemIdentifier) }) {
+            VStack(alignment: .leading, spacing: 0) {
+                // Parent row (always first)
+                if let parent = parent {
+                    HStack {
+                        if parentInQuadrant {
+                            Button(action: {
+                                fetcher.complete(parent)
+                            }) {
+                                Image(systemName: "checkmark.circle")
+                            }
+                            .buttonStyle(BorderlessButtonStyle())
+                            Text(parent.title)
+                                .bold()
+                                .onDrag {
+                                    NSItemProvider(object: parent.calendarItemIdentifier as NSString)
+                                }
+                        } else {
+                            Image(systemName: "circle")
+                                .foregroundColor(.gray)
+                            Text(parent.title)
+                                .bold()
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .onTapGesture(count: 2) {
+                        if parentInQuadrant, let url = URL(string: "x-apple-reminder://\(parent.calendarItemIdentifier)") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                }
+                // Children rows (indented, in section.reminders order)
+                ForEach(section.reminders, id: \.calendarItemIdentifier) { reminder in
+                    if reminder.calendarItemIdentifier != parentID && visibleIDs.contains(reminder.calendarItemIdentifier) {
+                        HStack {
+                            Button(action: {
+                                fetcher.complete(reminder)
+                            }) {
+                                Image(systemName: "checkmark.circle")
+                            }
+                            .buttonStyle(BorderlessButtonStyle())
+                            Text(reminder.title)
+                                .padding(.leading, 16)
+                                .onDrag {
+                                    NSItemProvider(object: reminder.calendarItemIdentifier as NSString)
+                                }
+                        }
+                        .onTapGesture(count: 2) {
+                            if let url = URL(string: "x-apple-reminder://\(reminder.calendarItemIdentifier)") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+
 struct ReminderGridView: View {
     @State private var showingListSelector = false
     @ObservedObject var fetcher: ReminderFetcher
@@ -72,22 +152,37 @@ struct ReminderGridView: View {
         VStack(alignment: .leading) {
             Text(title)
                 .font(.headline)
-            List(reminders, id: \.calendarItemIdentifier) { reminder in
-                HStack {
-                    Button(action: {
-                        fetcher.complete(reminder)
-                    }) {
-                        Image(systemName: "checkmark.circle")
-                    }
-                    .buttonStyle(BorderlessButtonStyle())
-                    Text(reminder.title)
-                        .onDrag {
-                            NSItemProvider(object: reminder.calendarItemIdentifier as NSString)
-                        }
+            // Sectioned display using tag-based grouping
+            // Only include sections where at least one child is in this quadrant
+            let sectioned = fetcher.sectionedReminders.filter { section in
+                section.reminders.contains(where: { reminders.contains($0) })
+            }
+            // The order of sectioned is preserved from sectionedReminders (parent first, then children)
+            let sectionIDs = Set(sectioned.flatMap { $0.reminders.map { $0.calendarItemIdentifier } })
+            let ungrouped = reminders.filter { !sectionIDs.contains($0.calendarItemIdentifier) }
+            List {
+                ForEach(sectioned, id: \.section) { section in
+                    let visibleReminders = section.reminders.filter { reminders.contains($0) }
+                    SectionView(section: section, visibleReminders: visibleReminders, fetcher: fetcher)
                 }
-                .onTapGesture(count: 2) {
-                    if let url = URL(string: "x-apple-reminder://\(reminder.calendarItemIdentifier)") {
-                        NSWorkspace.shared.open(url)
+                // Ungrouped reminders
+                ForEach(ungrouped, id: \.calendarItemIdentifier) { reminder in
+                    HStack {
+                        Button(action: {
+                            fetcher.complete(reminder)
+                        }) {
+                            Image(systemName: "checkmark.circle")
+                        }
+                        .buttonStyle(BorderlessButtonStyle())
+                        Text(reminder.title)
+                            .onDrag {
+                                NSItemProvider(object: reminder.calendarItemIdentifier as NSString)
+                            }
+                    }
+                    .onTapGesture(count: 2) {
+                        if let url = URL(string: "x-apple-reminder://\(reminder.calendarItemIdentifier)") {
+                            NSWorkspace.shared.open(url)
+                        }
                     }
                 }
             }
