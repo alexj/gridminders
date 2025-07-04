@@ -49,15 +49,14 @@ This document outlines a phased strategy for implementing the planned changes to
 - [✔] Add/Update tests to verify that only tags control urgency and importance.
 - [✔] Review and update README and help guides to reflect the new logic.
 
-### Phase 4: Improved item handling
+## Phase 4: Improved item handling
 - [✔] Support grouping/sections of reminders:
   - [✔] Display items within a section as children of that parent within the correct quadrant. (Parent and children are now grouped by #section-Name tag. Parent must have the same #section-Name tag as children, in title or notes.)
-- [ ] When a section of reminders is moved to a different quadrant:
-  - [ ] All items in that section have the same tags applied or removed, as applicable.
-- [ ] Preserve and sync the order of items with the Reminders app.
-- [ ] Items should be sorted by priority within their sections and quadrants:
-  - [ ] Items with 'high' priority are always at the top of their section, overruling any manual order.
-- [ ] Items within a quadrant should be sorted in the same order as in the Reminders app.
+- [✔] When a section of reminders is moved to a different quadrant:
+  - [✔] All items in that section have the same tags applied or removed, as applicable.
+- [✔] Items should be sorted by priority within their sections and quadrants:
+  - [✔] Items with 'high' priority are always at the top of their section, overruling any manual order.
+- [✔] Items within a quadrant should be sorted in the same order as in the Reminders app.
 - [ ] Allow manual sorting of items by dragging within a quadrant or section:
   - [ ] Update the order in the Reminders app accordingly.
 

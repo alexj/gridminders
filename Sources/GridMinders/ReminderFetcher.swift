@@ -46,12 +46,22 @@ final class ReminderFetcher: ObservableObject {
                     .replacingOccurrences(of: "-", with: "")
                     .replacingOccurrences(of: "_", with: "")
             }
+            // Build a lookup for reminders' original order
+            let orderLookup: [String: Int] = reminders.enumerated().reduce(into: [:]) { dict, pair in
+                dict[pair.element.calendarItemIdentifier] = pair.offset
+            }
             let sorted = value.sorted { lhs, rhs in
                 let lhsIsParent = normalize(lhs.title) == normalize(prettySection)
                 let rhsIsParent = normalize(rhs.title) == normalize(prettySection)
                 if lhsIsParent && !rhsIsParent { return true }
                 if !lhsIsParent && rhsIsParent { return false }
-                return lhs.title < rhs.title // fallback: alphabetical
+                // High priority always before others (priority == 1 is high)
+                if lhs.priority == 1 && rhs.priority != 1 { return true }
+                if lhs.priority != 1 && rhs.priority == 1 { return false }
+                // Otherwise, preserve Reminders app order
+                let lhsOrder = orderLookup[lhs.calendarItemIdentifier] ?? Int.max
+                let rhsOrder = orderLookup[rhs.calendarItemIdentifier] ?? Int.max
+                return lhsOrder < rhsOrder
             }
             return (section, sorted)
         }
