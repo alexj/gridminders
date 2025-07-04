@@ -16,19 +16,7 @@ class ReminderGridViewTests: XCTestCase {
         return reminder
     }
 
-    func testUrgentDueOverdue() {
-        let overdue = Date().addingTimeInterval(-3600) // 1 hour ago
-        let reminder = makeReminder(dueDate: overdue)
-        let grid = ReminderGridView(fetcher: ReminderFetcher())
-        XCTAssertTrue(grid.categorize(reminder).urgent, "Should be urgent if overdue")
-    }
 
-    func testUrgentDueSoon() {
-        let soon = Date().addingTimeInterval(47 * 60 * 60) // 47 hours from now
-        let reminder = makeReminder(dueDate: soon)
-        let grid = ReminderGridView(fetcher: ReminderFetcher())
-        XCTAssertTrue(grid.categorize(reminder).urgent, "Should be urgent if due within 48h")
-    }
 
     func testUrgentTagInTitle() {
         let reminder = makeReminder(title: "[Urgent] Something", priority: 0)
@@ -42,16 +30,12 @@ class ReminderGridViewTests: XCTestCase {
         XCTAssertTrue(grid.categorize(reminder).urgent, "Should be urgent if notes contains #urgent")
     }
 
-    func testImportantPriority() {
-        let reminder = makeReminder(priority: 1)
-        let grid = ReminderGridView(fetcher: ReminderFetcher())
-        XCTAssertTrue(grid.categorize(reminder).important, "Should be important if priority is high")
-    }
+
 
     func testImportantTagInTitle() {
-        let reminder = makeReminder(title: "Important: Buy milk")
+        let reminder = makeReminder(title: "#important: Buy milk")
         let grid = ReminderGridView(fetcher: ReminderFetcher())
-        XCTAssertTrue(grid.categorize(reminder).important, "Should be important if title contains 'important'")
+        XCTAssertTrue(grid.categorize(reminder).important, "Should be important if title contains #important")
     }
 
     func testImportantTagInNotes() {

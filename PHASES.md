@@ -37,6 +37,18 @@ This document outlines a phased strategy for implementing the planned changes to
 - [✔] Ensure undo/redo support for tag changes
 - [✔] Add/Update tests for drag-and-drop behavior
 
+### Phase 3.1: Remove use of dates in logic
+- [✔] Refactor the "urgent" logic:
+  - [✔] Remove all code that marks tasks as urgent based on due date or overdue status.
+  - [✔] Ensure only the `#urgent` tag (case-insensitive, in title or notes) determines urgency.
+- [✔] Refactor the "important" logic:
+  - [✔] Remove all code that marks tasks as important based on priority or other non-tag criteria.
+  - [✔] Ensure only the `#important` tag (case-insensitive, in title or notes) determines importance.
+- [✔] Update all UI labels, tooltips, and documentation to clarify that urgency and importance are tag-based only.
+- [✔] Update or remove any tests that check for urgency/importance based on dates or priority.
+- [✔] Add/Update tests to verify that only tags control urgency and importance.
+- [✔] Review and update README and help guides to reflect the new logic.
+
 ---
 
 ## Phase 4: Dock Icon Integration
