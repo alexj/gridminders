@@ -64,14 +64,15 @@ This document outlines a phased strategy for implementing the planned changes to
 - [✔] Implement hybrid section tagging strategy:
   - [✔] Allow user to specify a short, unique section/group tag (e.g., `#section-Q1Plan`) for parent reminders. (Colon is not supported; dash-based tags only.)
   - [✔] Grouping and parsing logic now only recognizes `#section-<short>` tags in title or notes. Fallback/pretty names are used for display only.
-  - [ ] Enforce uniqueness of section tags within the app (prompt user or auto-append a number if needed).
-  - [ ] When a reminder is made a child, ensure it receives the parent’s section tag (remove any previous section tag from the child).
+  - [✔] Enforce uniqueness of section tags within the app (prompt user or auto-append a number if needed).
+  - [ ] Add inline section tag editing UI so you can set or change section tags directly in the app.
   - [ ] When displaying sections in the UI, show the short tag or fallback for clarity.
   - [✔] Parent/child grouping restored and robust to tag format.
 - [ ] Add drag-to-parent functionality:
   - [ ] Enable dragging one reminder onto another to make the first a child of the second.
   - [ ] On drop, assign the parent’s section tag to the child and update grouping in the UI.
-  - [ ] If the drop target (parent) does not have a section tag, prompt the user to create or confirm a short tag.
+  - [ ] If the drop target (parent) does not have a section tag, prompt the user to create or confirm a  short tag.
+  - [ ] When a reminder is made a child, ensure it receives the parent’s section tag (remove any previous section tag from the child).
 - [ ] UI/UX improvements:
   - [ ] Highlight drop targets and show a tooltip or prompt (e.g., "Make this a child of [parent title]?").
   - [ ] Allow editing of section tags for parent reminders.

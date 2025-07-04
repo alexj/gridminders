@@ -10,11 +10,13 @@ private struct SectionView: View {
     @ObservedObject var fetcher: ReminderFetcher
 
     var parent: EKReminder? {
-        section.reminders.first { reminder in
-            let normTitle = reminder.title.lowercased().replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "-", with: "").replacingOccurrences(of: "_", with: "")
-            let normSection = section.section.lowercased().replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "-", with: "").replacingOccurrences(of: "_", with: "")
-            return normTitle == normSection
-        }
+        // Prefer reminder with explicit #section-<short> tag in title or notes
+        section.reminders.first(where: { r in
+            let tag = "#section-" + section.section
+            let titleHasTag = r.title.range(of: tag, options: .caseInsensitive) != nil
+            let notesHasTag = (r.notes?.range(of: tag, options: .caseInsensitive) ?? nil) != nil
+            return titleHasTag || notesHasTag
+        }) ?? section.reminders.first
     }
     var body: some View {
         // Always render parent+children as a single block, preserving order
@@ -36,9 +38,9 @@ private struct SectionView: View {
                             .buttonStyle(BorderlessButtonStyle())
                             Text(parent.title)
                                 .bold()
-                                .onDrag {
-                                    NSItemProvider(object: ("section:" + section.section) as NSString)
-                                }
+                            // Inline section tag editing UI
+                            SectionTagEditor(section: section, parent: parent, fetcher: fetcher)
+
                         } else {
                             Image(systemName: "circle")
                                 .foregroundColor(.gray)
