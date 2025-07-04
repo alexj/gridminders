@@ -2,6 +2,41 @@ import EventKit
 import Combine
 
 final class ReminderFetcher: ObservableObject {
+    // Moves a reminder within the reminders array to a new index (for ungrouped reminders)
+    func moveReminder(fromOffsets: IndexSet, toOffset: Int) {
+        var newReminders = reminders
+        newReminders.move(fromOffsets: fromOffsets, toOffset: toOffset)
+        reminders = newReminders
+        // NOTE: EventKit does not provide a public API to persist manual order changes to the Reminders app.
+        // This only affects the order in GridMinders.
+    }
+    // Moves a reminder within a section (for sectioned reminders)
+    func moveReminderInSection(section: String, fromOffsets: IndexSet, toOffset: Int) {
+        // Find all reminders in this section
+        let sectionReminders = reminders.filter { parseSectionTag($0) == section }
+        guard !sectionReminders.isEmpty else { return }
+
+        // Get the IDs in section, in current order
+        var sectionIDs = sectionReminders.map { $0.calendarItemIdentifier }
+        sectionIDs.move(fromOffsets: fromOffsets, toOffset: toOffset)
+        // Rebuild reminders array with section reordered
+        var newReminders = reminders
+        var sectionIdx = 0
+        for i in 0..<newReminders.count {
+            if parseSectionTag(newReminders[i]) == section {
+                let newID = sectionIDs[sectionIdx]
+                if newReminders[i].calendarItemIdentifier != newID,
+                   let swapIdx = newReminders.firstIndex(where: { $0.calendarItemIdentifier == newID }) {
+                    newReminders.swapAt(i, swapIdx)
+                }
+                sectionIdx += 1
+                if sectionIdx >= sectionIDs.count { break }
+            }
+        }
+        reminders = newReminders
+        // NOTE: EventKit does not provide a public API to persist manual order changes to the Reminders app.
+        // This only affects the order in GridMinders.
+    }
     var undoManager: UndoManager?
 
     @Published private(set) var calendars: [EKCalendar] = []

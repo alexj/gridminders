@@ -48,13 +48,26 @@ private struct SectionView: View {
                         }
                     }
                     .onTapGesture(count: 2) {
-                        if parentInQuadrant, let url = URL(string: "x-apple-reminder://\(parent.calendarItemIdentifier)") {
-                            NSWorkspace.shared.open(url)
+                        if parentInQuadrant {
+                            let uuid = parent.calendarItemIdentifier
+                            let newURL = URL(string: "x-apple-reminderkit://REMCDReminder/\(uuid)/details")
+                            let oldURL = URL(string: "x-apple-reminder://\(uuid)")
+                            if let newURL = newURL, NSWorkspace.shared.urlForApplication(toOpen: newURL) != nil {
+                                NSWorkspace.shared.open(newURL)
+                            } else if let oldURL = oldURL, NSWorkspace.shared.urlForApplication(toOpen: oldURL) != nil {
+                                NSWorkspace.shared.open(oldURL)
+                            } else {
+                                let alert = NSAlert()
+                                alert.messageText = "Cannot open reminder in Reminders app"
+                                alert.informativeText = "Your system does not support opening reminders directly. This feature may not be available on your version of macOS."
+                                alert.runModal()
+                            }
                         }
                     }
                 }
                 // Children rows (indented, in section.reminders order)
-                ForEach(section.reminders, id: \.calendarItemIdentifier) { reminder in
+                ForEach(section.reminders.indices, id: \.self) { index in
+                    let reminder = section.reminders[index]
                     if reminder.calendarItemIdentifier != parentID && visibleIDs.contains(reminder.calendarItemIdentifier) {
                         HStack {
                             Button(action: {
@@ -70,11 +83,24 @@ private struct SectionView: View {
                                 }
                         }
                         .onTapGesture(count: 2) {
-                            if let url = URL(string: "x-apple-reminder://\(reminder.calendarItemIdentifier)") {
-                                NSWorkspace.shared.open(url)
+                            let uuid = reminder.calendarItemIdentifier
+                            let newURL = URL(string: "x-apple-reminderkit://REMCDReminder/\(uuid)/details")
+                            let oldURL = URL(string: "x-apple-reminder://\(uuid)")
+                            if let newURL = newURL, NSWorkspace.shared.urlForApplication(toOpen: newURL) != nil {
+                                NSWorkspace.shared.open(newURL)
+                            } else if let oldURL = oldURL, NSWorkspace.shared.urlForApplication(toOpen: oldURL) != nil {
+                                NSWorkspace.shared.open(oldURL)
+                            } else {
+                                let alert = NSAlert()
+                                alert.messageText = "Cannot open reminder in Reminders app"
+                                alert.informativeText = "Your system does not support opening reminders directly. This feature may not be available on your version of macOS."
+                                alert.runModal()
                             }
                         }
                     }
+                }
+                .onMove { indices, newOffset in
+                    fetcher.moveReminderInSection(section: section.section, fromOffsets: indices, toOffset: newOffset)
                 }
             }
         }
@@ -166,7 +192,8 @@ struct ReminderGridView: View {
                     SectionView(section: section, visibleReminders: visibleReminders, fetcher: fetcher)
                 }
                 // Ungrouped reminders
-                ForEach(ungrouped, id: \.calendarItemIdentifier) { reminder in
+                ForEach(ungrouped.indices, id: \.self) { index in
+                    let reminder = ungrouped[index]
                     HStack {
                         Button(action: {
                             fetcher.complete(reminder)
@@ -184,6 +211,9 @@ struct ReminderGridView: View {
                             NSWorkspace.shared.open(url)
                         }
                     }
+                }
+                .onMove { indices, newOffset in
+                    fetcher.moveReminder(fromOffsets: indices, toOffset: newOffset)
                 }
             }
             .onDrop(of: [UTType.text], isTargeted: nil) { providers in

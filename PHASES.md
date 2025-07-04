@@ -57,8 +57,8 @@ This document outlines a phased strategy for implementing the planned changes to
 - [✔] Items should be sorted by priority within their sections and quadrants:
   - [✔] Items with 'high' priority are always at the top of their section, overruling any manual order.
 - [✔] Items within a quadrant should be sorted in the same order as in the Reminders app.
-- [ ] Allow manual sorting of items by dragging within a quadrant or section:
-  - [ ] Update the order in the Reminders app accordingly.
+- [✔] Allow manual sorting of items by dragging within a quadrant or section:
+  - [✘] Update the order in the Reminders app accordingly. (Not possible: EventKit does not support programmatic sorting. Order is local to GridMinders only.)
 
 
 ## Phase 5: Dock Icon Integration
