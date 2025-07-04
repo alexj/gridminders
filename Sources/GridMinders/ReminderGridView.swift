@@ -123,6 +123,12 @@ struct ReminderGridView: View {
                 let idString = id as String
                 DispatchQueue.main.async {
                     if let reminder = fetcher.reminders.first(where: { $0.calendarItemIdentifier == idString }) {
+                        // Determine previous state for undo/redo
+                        let prev = categorize(reminder)
+                        // Optionally set undoManager from environment if available
+                        if fetcher.undoManager == nil, let window = NSApp.keyWindow {
+                            fetcher.undoManager = window.undoManager
+                        }
                         fetcher.modify(reminder, important: important, urgent: urgent)
                     }
                 }

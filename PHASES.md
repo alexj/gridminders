@@ -28,14 +28,14 @@ This document outlines a phased strategy for implementing the planned changes to
 ---
 
 ## Phase 3: Enhanced Drag-and-Drop Behavior
-- [ ] Update drag-and-drop logic as follows:
-  - [ ] Dropping a reminder into an important quadrant automatically tags it with 'important'
-  - [ ] Dropping a reminder into an urgent quadrant automatically tags it with 'urgent'
-  - [ ] Dragging an 'important' item into a not-important quadrant removes the 'important' tag
-  - [ ] Dragging an 'urgent' item into a not-urgent quadrant removes the 'urgent' tag
-- [ ] Update UI to reflect tag changes in real time
-- [ ] Ensure undo/redo support for tag changes
-- [ ] Add/Update tests for drag-and-drop behavior
+- [✔] Update drag-and-drop logic as follows:
+  - [✔] Dropping a reminder into an important quadrant automatically tags it with 'important'
+  - [✔] Dropping a reminder into an urgent quadrant automatically tags it with 'urgent'
+  - [✔] Dragging an 'important' item into a not-important quadrant removes the 'important' tag
+  - [✔] Dragging an 'urgent' item into a not-urgent quadrant removes the 'urgent' tag
+- [✔] Update UI to reflect tag changes in real time
+- [✔] Ensure undo/redo support for tag changes
+- [✔] Add/Update tests for drag-and-drop behavior
 
 ---
 

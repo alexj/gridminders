@@ -2,6 +2,8 @@ import EventKit
 import Combine
 
 final class ReminderFetcher: ObservableObject {
+    var undoManager: UndoManager?
+
     @Published private(set) var calendars: [EKCalendar] = []
     @Published var includedCalendarIDs: Set<String> = [] // IDs of included lists
     @Published var excludedCalendarIDs: Set<String> = [] // IDs of excluded lists
@@ -96,22 +98,79 @@ final class ReminderFetcher: ObservableObject {
     ///   - important: If true, the reminder is given the highest priority.
     ///   - urgent: If true, the reminder is assigned a due date of today. If
     ///     false, any existing due date is cleared.
-    func modify(_ reminder: EKReminder, important: Bool, urgent: Bool) {
+    /// Enhanced: Also manages #important and #urgent tags in notes, and supports undo.
+    func modify(_ reminder: EKReminder, important: Bool, urgent: Bool, shouldPersist: Bool = true) {
+        let oldPriority = reminder.priority
+        let oldDue = reminder.dueDateComponents
+        let oldNotes = reminder.notes
+
+        // Priority
         reminder.priority = important ? 1 : 0
+        // Do NOT modify due date; always preserve existing dueDateComponents
 
-        if urgent {
-            let comps = Calendar.current.dateComponents([.year, .month, .day],
-                                                      from: Date())
-            reminder.dueDateComponents = comps
-        } else {
-            reminder.dueDateComponents = nil
+        // Tag logic (in notes)
+        var notes = reminder.notes ?? ""
+        func hasTag(_ tag: String) -> Bool {
+            notes.localizedCaseInsensitiveContains(tag)
         }
-
-        do {
-            try store.save(reminder, commit: true)
-            loadReminders()
-        } catch {
-            print("Failed to modify reminder", error)
+        func addTag(_ tag: String) {
+            if !hasTag(tag) {
+                if notes.isEmpty {
+                    notes = tag
+                } else {
+                    notes += " " + tag
+                }
+            }
+        }
+        func removeTag(_ tag: String) {
+            // Remove tag if it is surrounded by word boundaries or spaces
+            let pattern = "(\\s|^)" + NSRegularExpression.escapedPattern(for: tag) + "(\\s|$)"
+            let regex = try! NSRegularExpression(pattern: pattern, options: .caseInsensitive)
+            notes = regex.stringByReplacingMatches(in: notes, options: [], range: NSRange(location: 0, length: notes.utf16.count), withTemplate: " ")
+            // Clean up multiple spaces and trim
+            notes = notes.replacingOccurrences(of: "  ", with: " ")
+            notes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        // Important tag
+        if important {
+            addTag("#important")
+        } else {
+            removeTag("#important")
+        }
+        // Urgent tag
+        if urgent {
+            addTag("#urgent")
+        } else {
+            removeTag("#urgent")
+        }
+        reminder.notes = notes.isEmpty ? nil : notes
+        // Undo support
+        if let undoManager = undoManager {
+            let oldNotesCopy = oldNotes
+            let oldPriorityCopy = oldPriority
+            let oldDueCopy = oldDue
+            undoManager.registerUndo(withTarget: self) { target in
+                reminder.priority = oldPriorityCopy
+                reminder.dueDateComponents = oldDueCopy
+                reminder.notes = oldNotesCopy
+                if shouldPersist {
+                    do {
+                        try target.store.save(reminder, commit: true)
+                        target.loadReminders()
+                    } catch {
+                        print("Failed to undo reminder modification", error)
+                    }
+                }
+            }
+            undoManager.setActionName("Modify Reminder Tags")
+        }
+        if shouldPersist {
+            do {
+                try store.save(reminder, commit: true)
+                loadReminders()
+            } catch {
+                print("Failed to modify reminder", error)
+            }
         }
     }
 }

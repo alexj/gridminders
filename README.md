@@ -8,6 +8,12 @@ The app requests permission to access the Reminders database using `EventKit`. C
 - **Important** if they have high priority or are tagged with 'important' (case-insensitive, in the title or notes).
 - **Urgent** if they are overdue, due within the next 48 hours, or tagged with 'urgent' (case-insensitive, in the title or notes).
 
+**Enhanced Drag-and-Drop:**
+- Drag reminders into the "important" or "urgent" quadrants to automatically add `#important` or `#urgent` tags to the reminder's notes.
+- Drag reminders out of those quadrants to remove the respective tag.
+- Tag changes are undoable using Cmd-Z (undo/redo).
+- The UI updates instantly after any drag-and-drop change.
+
 The four quadrants are:
 
 1. Important & Urgent
