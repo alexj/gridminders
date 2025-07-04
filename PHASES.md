@@ -75,6 +75,7 @@ This document outlines a phased strategy for implementing the planned changes to
 - [ ] UI/UX improvements:
   - [ ] Highlight drop targets and show a tooltip or prompt (e.g., "Make this a child of [parent title]?").
   - [ ] Allow editing of section tags for parent reminders.
+  - [ ] When a parent reminder's section tag is renamed automatically update all child reminders to use the new tag.
   - [ ] Warn or prevent if a section tag is not unique.
 - [ ] Update documentation and README to explain the new grouping/tagging workflow.
 

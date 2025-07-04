@@ -139,15 +139,24 @@ final class ReminderFetcher: ObservableObject {
         let filtered = reminder == nil ? allTags : reminders.filter { $0 != reminder }.compactMap { parseSectionTag($0) }
         return !filtered.contains(where: { $0.caseInsensitiveCompare(tag) == .orderedSame })
     }
-    /// Set a section tag on a reminder (removes any existing section tag)
-    func setSectionTag(_ reminder: EKReminder, tag: String) {
+    /// Set a section tag on a reminder (removes any existing section tag). Ensures uniqueness by auto-appending a number if needed. Returns the final tag used.
+    @discardableResult
+    func setSectionTag(_ reminder: EKReminder, tag: String) -> String {
         removeSectionTags(reminder)
+        // Enforce uniqueness (case-insensitive)
+        var finalTag = tag
+        var n = 2
+        while !isSectionTagUnique(finalTag, excluding: reminder) {
+            finalTag = "\(tag)\(n)"
+            n += 1
+        }
         // Add to notes
         var notes = reminder.notes ?? ""
         if !notes.isEmpty { notes += " " }
-        notes += "#section-" + tag
+        notes += "#section-" + finalTag
         reminder.notes = notes
         do { try store.save(reminder, commit: true); loadReminders() } catch { print("Failed to set section tag", error) }
+        return finalTag
     }
     /// Remove all section tags from a reminder
     func removeSectionTags(_ reminder: EKReminder) {

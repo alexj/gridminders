@@ -50,12 +50,9 @@ private struct SectionView: View {
                     .onTapGesture(count: 2) {
                         if parentInQuadrant {
                             let uuid = parent.calendarItemIdentifier
-                            let newURL = URL(string: "x-apple-reminderkit://REMCDReminder/\(uuid)/details")
-                            let oldURL = URL(string: "x-apple-reminder://\(uuid)")
-                            if let newURL = newURL, NSWorkspace.shared.urlForApplication(toOpen: newURL) != nil {
-                                NSWorkspace.shared.open(newURL)
-                            } else if let oldURL = oldURL, NSWorkspace.shared.urlForApplication(toOpen: oldURL) != nil {
-                                NSWorkspace.shared.open(oldURL)
+                            let url = URL(string: "x-apple-reminderkit://REMCDReminder/\(uuid)/details")
+                            if let url = url, NSWorkspace.shared.urlForApplication(toOpen: url) != nil {
+                                NSWorkspace.shared.open(url)
                             } else {
                                 let alert = NSAlert()
                                 alert.messageText = "Cannot open reminder in Reminders app"
@@ -84,12 +81,9 @@ private struct SectionView: View {
                         }
                         .onTapGesture(count: 2) {
                             let uuid = reminder.calendarItemIdentifier
-                            let newURL = URL(string: "x-apple-reminderkit://REMCDReminder/\(uuid)/details")
-                            let oldURL = URL(string: "x-apple-reminder://\(uuid)")
-                            if let newURL = newURL, NSWorkspace.shared.urlForApplication(toOpen: newURL) != nil {
-                                NSWorkspace.shared.open(newURL)
-                            } else if let oldURL = oldURL, NSWorkspace.shared.urlForApplication(toOpen: oldURL) != nil {
-                                NSWorkspace.shared.open(oldURL)
+                            let url = URL(string: "x-apple-reminderkit://REMCDReminder/\(uuid)/details")
+                            if let url = url, NSWorkspace.shared.urlForApplication(toOpen: url) != nil {
+                                NSWorkspace.shared.open(url)
                             } else {
                                 let alert = NSAlert()
                                 alert.messageText = "Cannot open reminder in Reminders app"
