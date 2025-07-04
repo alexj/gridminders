@@ -60,6 +60,23 @@ This document outlines a phased strategy for implementing the planned changes to
 - [✔] Allow manual sorting of items by dragging within a quadrant or section:
   - [✘] Update the order in the Reminders app accordingly. (Not possible: EventKit does not support programmatic sorting. Order is local to GridMinders only.)
 
+### Phase 4.1: Improve UX of item grouping
+- [✔] Implement hybrid section tagging strategy:
+  - [✔] Allow user to specify a short, unique section/group tag (e.g., `#section-Q1Plan`) for parent reminders. (Colon is not supported; dash-based tags only.)
+  - [✔] Grouping and parsing logic now only recognizes `#section-<short>` tags in title or notes. Fallback/pretty names are used for display only.
+  - [ ] Enforce uniqueness of section tags within the app (prompt user or auto-append a number if needed).
+  - [ ] When a reminder is made a child, ensure it receives the parent’s section tag (remove any previous section tag from the child).
+  - [ ] When displaying sections in the UI, show the short tag or fallback for clarity.
+  - [✔] Parent/child grouping restored and robust to tag format.
+- [ ] Add drag-to-parent functionality:
+  - [ ] Enable dragging one reminder onto another to make the first a child of the second.
+  - [ ] On drop, assign the parent’s section tag to the child and update grouping in the UI.
+  - [ ] If the drop target (parent) does not have a section tag, prompt the user to create or confirm a short tag.
+- [ ] UI/UX improvements:
+  - [ ] Highlight drop targets and show a tooltip or prompt (e.g., "Make this a child of [parent title]?").
+  - [ ] Allow editing of section tags for parent reminders.
+  - [ ] Warn or prevent if a section tag is not unique.
+- [ ] Update documentation and README to explain the new grouping/tagging workflow.
 
 ## Phase 5: Dock Icon Integration
 - Add a dock icon for the app

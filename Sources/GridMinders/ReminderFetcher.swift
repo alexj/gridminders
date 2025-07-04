@@ -110,22 +110,54 @@ final class ReminderFetcher: ObservableObject {
         reminders.filter { parseSectionTag($0) == nil }
     }
 
-    /// Helper: Extracts section name from #section-Name tag in notes or title
+    /// Helper: Extracts section name from #section-<short> tag in notes or title. Only explicit tags are used for grouping.
     private func parseSectionTag(_ reminder: EKReminder) -> String? {
+        // Look for #section-<short> in title or notes
         let sources: [String?] = [reminder.title, reminder.notes]
+        let pattern = "#section-([A-Za-z0-9_-]+)"
         for textOpt in sources {
             guard let text = textOpt else { continue }
-            let pattern = "#section-([A-Za-z0-9_-]+)"
             if let match = text.range(of: pattern, options: .regularExpression) {
-                let tag = String(text[match])
-                // Remove #section- prefix
-                if let dashIdx = tag.firstIndex(of: "-") {
-                    let name = tag[tag.index(after: dashIdx)...]
+                let name = text[match].replacingOccurrences(of: "#section-", with: "")
+                if !name.isEmpty {
                     return String(name)
                 }
             }
         }
+        // Do NOT fallback for grouping
         return nil
+    }
+    /// Normalize/truncate a string for use as a fallback section tag
+    private func normalizeSectionTag(_ s: String?) -> String {
+        guard let s = s else { return "" }
+        let alphanumerics = s.lowercased().filter { $0.isLetter || $0.isNumber }
+        return String(alphanumerics.prefix(10))
+    }
+    /// Check if a section tag is unique among all reminders
+    func isSectionTagUnique(_ tag: String, excluding reminder: EKReminder? = nil) -> Bool {
+        let allTags = reminders.compactMap { parseSectionTag($0) }
+        let filtered = reminder == nil ? allTags : reminders.filter { $0 != reminder }.compactMap { parseSectionTag($0) }
+        return !filtered.contains(where: { $0.caseInsensitiveCompare(tag) == .orderedSame })
+    }
+    /// Set a section tag on a reminder (removes any existing section tag)
+    func setSectionTag(_ reminder: EKReminder, tag: String) {
+        removeSectionTags(reminder)
+        // Add to notes
+        var notes = reminder.notes ?? ""
+        if !notes.isEmpty { notes += " " }
+        notes += "#section-" + tag
+        reminder.notes = notes
+        do { try store.save(reminder, commit: true); loadReminders() } catch { print("Failed to set section tag", error) }
+    }
+    /// Remove all section tags from a reminder
+    func removeSectionTags(_ reminder: EKReminder) {
+        var notes = reminder.notes ?? ""
+        let pattern = "(\\s|^)#section-[A-Za-z0-9_-]+(\\s|$)"
+        let regex = try! NSRegularExpression(pattern: pattern, options: .caseInsensitive)
+        notes = regex.stringByReplacingMatches(in: notes, options: [], range: NSRange(location: 0, length: notes.utf16.count), withTemplate: " ")
+        notes = notes.replacingOccurrences(of: "  ", with: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+        reminder.notes = notes.isEmpty ? nil : notes
+        do { try store.save(reminder, commit: true); loadReminders() } catch { print("Failed to remove section tag", error) }
     }
 
     /// Helper: Prettify section name for display (replace - and _ with space, capitalize words)
