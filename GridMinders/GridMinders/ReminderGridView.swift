@@ -35,6 +35,15 @@ private struct Phase5SectionView: View {
                             .onTapGesture(count: 2) { isEditingTag = true }
                             .help("Double-click to edit section tag")
                     }
+                    Spacer()
+                    Button(action: {
+                        fetcher.removeParentSectionTagAndUngroupChildren(parent: parent, section: section)
+                    }) {
+                        Image(systemName: "xmark.circle")
+                            .foregroundColor(.red)
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
+                    .help("Ungroup parent and all children")
                 }
                 .padding(.vertical, 2)
                 .background(Color.accentColor.opacity(0.08))
@@ -51,6 +60,15 @@ private struct Phase5SectionView: View {
                     Text(child.title)
                         .padding(.leading, 16)
                     Text("#i-") + Text(section).font(.caption).foregroundColor(.secondary)
+                    Spacer()
+                    Button(action: {
+                        fetcher.removeChildSectionTag(child, section: section)
+                    }) {
+                        Image(systemName: "xmark.circle")
+                            .foregroundColor(.red)
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
+                    .help("Remove from group")
                 }
                 .padding(.vertical, 1)
                 .background(Color.secondary.opacity(0.04))

@@ -103,14 +103,15 @@ This document outlines a phased strategy for implementing the planned changes to
     - [✔] If the parent already has a `#p-<section>` tag, assign the corresponding `#i-<section>` tag to the dragged reminder.
 
 ### Phase 5.4: Tag Editing and Consistency
-- [ ] Allow a parent's group tag to be edited in place (e.g., double-click the tag to edit it).
-- [ ] When editing a parent’s group tag (renaming the section):
-    - [ ] Update the parent's tag in Notes to the new `#p-<newsection>`.
-    - [ ] Update all children’s tags in Notes to `#i-<newsection>`.
-    - [ ] Enforce uniqueness of section names (no two parents with the same `#p-<section>`).
-- [ ] When a child is removed from a group, remove its `#i-<section>` tag from Notes.
-- [ ] When a parent is deleted or ungrouped, remove its `#p-<section>` tag and update all children to remove their `#i-<section>` tags (or prompt for new grouping).
-- [ ] If a tag is entered with a space, colon or special character other than a dash, replace the character with a dash. If there are two or more dashes in a row, replace them with a single dash.
+- [✔] Allow a parent's group tag to be edited in place (e.g., double-click the tag to edit it).
+- [✔] When editing a parent’s group tag (renaming the section):
+    - [✔] Update the parent's tag in Notes to the new `#p-<newsection>`.
+    - [✔] Update all children’s tags in Notes to `#i-<newsection>`.
+    - [✔] Enforce uniqueness of section names (no two parents with the same `#p-<section>`).
+    - [✔] If a tag is entered with a space, colon or special character other than a dash, replace the character with a dash. If there are two or more dashes in a row, replace them with a single dash.
+- [✔] When a child is removed from a group, remove its `#i-<section>` tag from Notes.
+- [✔] When a parent is deleted or ungrouped, remove its `#p-<section>` tag and update all children to remove their `#i-<section>` tags (or prompt for new grouping).
+
 
 ### Phase 5.5: Validation and Invariants
 - [ ] On every relevant operation (add, edit, drag, drop, remove), enforce:
