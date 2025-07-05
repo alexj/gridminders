@@ -83,6 +83,7 @@ This document outlines a phased strategy for implementing the planned changes to
 
 
 ## Phase 5: UI/UX improvements
+- [ ] Make the entire row of an item or group draggable
 - [ ] Highlight drop targets and show a tooltip or prompt (e.g., "Make this a child of [parent title]?").
 - [ ] Allow editing of section tags for parent reminders. Modify the implementation to only show the editing interface on when the user taps the section tag capsule next to the parent title.
 - [ ] When a parent reminder's section tag is renamed automatically update all child reminders to use the new tag.

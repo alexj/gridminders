@@ -157,6 +157,7 @@ final class ReminderFetcher: ObservableObject {
         if !notes.isEmpty { notes += " " }
         notes += "#section-" + finalTag
         reminder.notes = notes
+        // Do NOT modify the title when setting a section tag
         do { try store.save(reminder, commit: true); loadReminders() } catch { print("Failed to set section tag", error) }
         return finalTag
     }
