@@ -6,13 +6,24 @@ import UniformTypeIdentifiers
 // MARK: - SectionView Helper
 private struct SectionView: View {
     let section: (section: String, reminders: [EKReminder])
+    // Sorted so parent is always first
+    var sortedReminders: [EKReminder] {
+        let tag = "#section-" + section.section
+        return section.reminders.sorted { lhs, rhs in
+            let lhsIsParent = lhs.title.range(of: tag, options: .caseInsensitive) != nil || (lhs.notes?.range(of: tag, options: .caseInsensitive) ?? nil) != nil
+            let rhsIsParent = rhs.title.range(of: tag, options: .caseInsensitive) != nil || (rhs.notes?.range(of: tag, options: .caseInsensitive) ?? nil) != nil
+            if lhsIsParent && !rhsIsParent { return true }
+            if !lhsIsParent && rhsIsParent { return false }
+            return false // preserve original order otherwise
+        }
+    }
     let visibleReminders: [EKReminder]
     let onDropReminder: (_ parent: EKReminder, _ droppedID: String) -> Void
     @ObservedObject var fetcher: ReminderFetcher
 
     var parent: EKReminder? {
         // Prefer reminder with explicit #section-<short> tag in title or notes
-        section.reminders.first(where: { r in
+        sortedReminders.first(where: { r in
             let tag = "#section-" + section.section
             let titleHasTag = r.title.range(of: tag, options: .caseInsensitive) != nil
             let notesHasTag = (r.notes?.range(of: tag, options: .caseInsensitive) ?? nil) != nil
