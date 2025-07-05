@@ -280,10 +280,46 @@ final class ReminderFetcher: ObservableObject {
     func setChildSectionTag(_ reminder: EKReminder, section: String) {
         removePhase5SectionTags(reminder)
         var notes = reminder.notes ?? ""
-        if !notes.isEmpty { notes += " " }
+        if (!notes.isEmpty) { notes += " " }
         notes += "#i-" + section
         reminder.notes = notes
         do { try store.save(reminder, commit: true); loadReminders() } catch { print("Failed to set child section tag", error) }
+    }
+
+    /// Remove #i-<section> tag from a reminder's Notes (for ungrouping a child)
+    func removeChildSectionTag(_ reminder: EKReminder, section: String) {
+        guard let notes = reminder.notes else { return }
+        let pattern = "(\\s|^)#i-" + NSRegularExpression.escapedPattern(for: section) + "(\\s|$)"
+        let regex = try! NSRegularExpression(pattern: pattern, options: .caseInsensitive)
+        let newNotes = regex.stringByReplacingMatches(in: notes, options: [], range: NSRange(location: 0, length: notes.utf16.count), withTemplate: " ")
+            .replacingOccurrences(of: "  ", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if newNotes != notes {
+            reminder.notes = newNotes.isEmpty ? nil : newNotes
+            do { try store.save(reminder, commit: true); loadReminders() } catch { print("Failed to remove child section tag", error) }
+        }
+    }
+
+    /// Remove #p-<section> tag from a parent and ungroup all children (removes their #i-<section> tags)
+    func removeParentSectionTagAndUngroupChildren(parent: EKReminder, section: String) {
+        // Remove #p-<section> from parent
+        guard let notes = parent.notes else { return }
+        let pattern = "(\\s|^)#p-" + NSRegularExpression.escapedPattern(for: section) + "(\\s|$)"
+        let regex = try! NSRegularExpression(pattern: pattern, options: .caseInsensitive)
+        let newNotes = regex.stringByReplacingMatches(in: notes, options: [], range: NSRange(location: 0, length: notes.utf16.count), withTemplate: " ")
+            .replacingOccurrences(of: "  ", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if newNotes != notes {
+            parent.notes = newNotes.isEmpty ? nil : newNotes
+            do { try store.save(parent, commit: true) } catch { print("Failed to remove parent section tag", error) }
+        }
+        // Remove #i-<section> from all children
+        for reminder in reminders {
+            if parseChildSectionTag(reminder) == section {
+                removeChildSectionTag(reminder, section: section)
+            }
+        }
+        loadReminders()
     }
 
     /// Remove all section tags from a reminder

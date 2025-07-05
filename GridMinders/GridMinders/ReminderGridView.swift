@@ -11,6 +11,7 @@ private struct Phase5SectionView: View {
     let parentVisible: Bool
     let onDropReminder: (_ parent: EKReminder, _ droppedID: String) -> Void
     @ObservedObject var fetcher: ReminderFetcher
+    @State private var isEditingTag: Bool = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -25,7 +26,15 @@ private struct Phase5SectionView: View {
                     Text(parent.title)
                         .bold()
                         .foregroundColor(.accentColor)
-                    Text("#p-") + Text(section).font(.caption).foregroundColor(.accentColor)
+                    if isEditingTag {
+                        SectionTagEditor(section: (section: section, reminders: [parent] + children), parent: parent, fetcher: fetcher)
+                            .frame(width: 140)
+                            .onDisappear { isEditingTag = false }
+                    } else {
+                        (Text("#p-") + Text(section).font(.caption).foregroundColor(.accentColor))
+                            .onTapGesture(count: 2) { isEditingTag = true }
+                            .help("Double-click to edit section tag")
+                    }
                 }
                 .padding(.vertical, 2)
                 .background(Color.accentColor.opacity(0.08))

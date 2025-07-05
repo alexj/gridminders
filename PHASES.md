@@ -103,6 +103,7 @@ This document outlines a phased strategy for implementing the planned changes to
     - [✔] If the parent already has a `#p-<section>` tag, assign the corresponding `#i-<section>` tag to the dragged reminder.
 
 ### Phase 5.4: Tag Editing and Consistency
+- [ ] Allow a parent's group tag to be edited in place (e.g., double-click the tag to edit it).
 - [ ] When editing a parent’s group tag (renaming the section):
     - [ ] Update the parent's tag in Notes to the new `#p-<newsection>`.
     - [ ] Update all children’s tags in Notes to `#i-<newsection>`.
