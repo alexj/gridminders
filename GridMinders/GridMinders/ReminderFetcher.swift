@@ -75,6 +75,28 @@ final class ReminderFetcher: ObservableObject {
 
     @Published private(set) var reminders: [EKReminder] = []
 
+    /// PHASE 5.2: Returns reminders grouped by #p-<section> (parent) and #i-<section> (children) tags in Notes
+    var phase5SectionedReminders: [(section: String, parent: EKReminder, children: [EKReminder])] {
+        // Map from section to parent and children
+        var parents: [String: EKReminder] = [:]
+        var children: [String: [EKReminder]] = [:]
+        for reminder in reminders {
+            if let (role, section) = parsePhase5SectionTag(reminder) {
+                if role == "parent" && !hasParentAndChildTag(reminder) {
+                    parents[section] = reminder
+                } else if role == "child" && !hasParentAndChildTag(reminder) {
+                    children[section, default: []].append(reminder)
+                }
+            }
+        }
+        // Only include groups with a valid parent
+        return parents.map { (section, parent) in
+            let kids = children[section] ?? []
+            return (section: section, parent: parent, children: kids)
+        }
+        .sorted { prettifySectionName($0.section).localizedCaseInsensitiveCompare(prettifySectionName($1.section)) == .orderedAscending }
+    }
+
     /// Computed: Returns reminders grouped by #section-Name tag
     var sectionedReminders: [(section: String, reminders: [EKReminder])] {
         return Dictionary(grouping: reminders) { reminder -> String? in
@@ -230,6 +252,38 @@ final class ReminderFetcher: ObservableObject {
         }
         do { try store.save(reminder, commit: true); loadReminders() } catch { print("Failed to set section tag in title", error) }
         return finalTag
+    }
+
+    /// Remove all Phase 5 parent/child section tags from a reminder
+    func removePhase5SectionTags(_ reminder: EKReminder) {
+        var notes = reminder.notes ?? ""
+        let pattern = "(\\s|^)(#p-|#i-)[A-Za-z0-9_-]+(\\s|$)"
+        let regex = try! NSRegularExpression(pattern: pattern, options: .caseInsensitive)
+        notes = regex.stringByReplacingMatches(in: notes, options: [], range: NSRange(location: 0, length: notes.utf16.count), withTemplate: " ")
+        notes = notes.replacingOccurrences(of: "  ", with: " ")
+        notes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        reminder.notes = notes.isEmpty ? nil : notes
+        do { try store.save(reminder, commit: true); loadReminders() } catch { print("Failed to remove Phase 5 section tags", error) }
+    }
+
+    /// Set #p-<section> as the only Phase 5 tag in Notes (removes #i- if present)
+    func setParentSectionTag(_ reminder: EKReminder, section: String) {
+        removePhase5SectionTags(reminder)
+        var notes = reminder.notes ?? ""
+        if !notes.isEmpty { notes += " " }
+        notes += "#p-" + section
+        reminder.notes = notes
+        do { try store.save(reminder, commit: true); loadReminders() } catch { print("Failed to set parent section tag", error) }
+    }
+
+    /// Set #i-<section> as the only Phase 5 tag in Notes (removes #p- if present)
+    func setChildSectionTag(_ reminder: EKReminder, section: String) {
+        removePhase5SectionTags(reminder)
+        var notes = reminder.notes ?? ""
+        if !notes.isEmpty { notes += " " }
+        notes += "#i-" + section
+        reminder.notes = notes
+        do { try store.save(reminder, commit: true); loadReminders() } catch { print("Failed to set child section tag", error) }
     }
 
     /// Remove all section tags from a reminder

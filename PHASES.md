@@ -96,9 +96,11 @@ This document outlines a phased strategy for implementing the planned changes to
     - [x] Treat reminders with neither tag as ungrouped.
 
 ### Phase 5.2: UI Grouping & Display
-- [ ] Display each group with the parent (`#p-<section>`) as the group header.
-- [ ] Display all children (`#i-<section>`) under the parent.
-- [ ] Prevent a reminder from being both parent and child in the same or different groups.
+- [x] Display each group with the parent (`#p-<section>`) as the group header.
+- [x] Display all children (`#i-<section>`) under the parent.
+- [x] Prevent a reminder from being both parent and child in the same or different groups.
+
+> **2025-07-05:** UI now displays each group with the parent (#p-<section>) as the header and all children (#i-<section>) under the parent, using the new tag structure. Legacy grouping and SectionView have been removed. Ready for Phase 5.3.
 
 ### Phase 5.3: Drag-and-Drop Grouping
 - [ ] On drag-and-drop:
