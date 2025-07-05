@@ -81,8 +81,53 @@ This document outlines a phased strategy for implementing the planned changes to
   - [ ] If the drop target (parent) does not have a section tag, prompt the user to create or confirm a  short tag.
   - [ ] When a reminder is made a child, ensure it receives the parent’s section tag (remove any previous section tag from the child).
 
+## Phase 5: Change grouping structure
 
-## Phase 5: UI/UX improvements
+### 5.1 Tagging Conventions
+- [ ] Use only the Tags field for grouping (not Notes or Title)
+- [ ] Parent reminders must have a tag of the form `p-<section>`
+- [ ] Child reminders must have a tag of the form `i-<section>`
+- [ ] The `<section>` part is the shared identifier for the group
+- [ ] Enforce that no reminder can have both a `p-` and `i-` tag at the same time
+
+### 5.2 Tag Parsing and Grouping Logic
+- [ ] On fetch, parse Tags field for `p-<section>` and `i-<section>` tags
+- [ ] Build groups: each group has one parent (`p-<section>`) and any number of children (`i-<section>`)
+- [ ] Any reminder with neither tag is ungrouped
+
+### 5.3 UI and Display Logic
+- [ ] Display each group with the parent as the section header
+- [ ] Display all children under the parent
+- [ ] Prevent a reminder from being both parent and child in any group
+
+### 5.4 Drag-and-Drop Grouping
+- [ ] On drag/drop, if the drop target lacks a group tag, prompt for a section name
+- [ ] Assign `p-<section>` tag to the drop target (parent)
+- [ ] Assign `i-<section>` tag to the dragged reminder (child), removing any previous `p-` or `i-` tags from it
+- [ ] If the parent already has a `p-<section>` tag, assign the corresponding `i-<section>` tag to the dragged reminder
+
+### 5.5 Tag Editing and Consistency
+- [ ] When editing a parent's group tag, update the parent's tag to `p-<newsection>`
+- [ ] Update all children to `i-<newsection>`
+- [ ] Enforce uniqueness of section names (no two parents with the same `p-<section>`)
+
+### 5.6 Removing/Changing Group Membership
+- [ ] When a child is removed from a group, remove its `i-<section>` tag
+- [ ] When a parent is deleted or ungrouped, remove its `p-<section>` tag and update all children to remove their `i-<section>` tags
+
+### 5.7 Validation and Invariants
+- [ ] On every operation, enforce that no reminder has both a `p-` and `i-` tag
+- [ ] Each group has at most one parent
+- [ ] Handle orphaned children (with `i-<section>` but no parent) gracefully
+
+### 5.8 User-Facing Tag Filtering
+- [ ] Filter or visually distinguish `p-` and `i-` tags in any user-facing tag lists to avoid confusion
+
+### 5.9 Documentation
+- [ ] Update in-app help and README to explain the new grouping/tagging workflow and special tags
+
+
+## Phase 6: UI/UX improvements
 - [ ] Make the entire row of an item or group draggable
 - [ ] make the entire area of a parent and its children a a drop target for new items to be assigned to the parent
 - [ ] Highlight drop targets and show a tooltip or prompt (e.g., "Make this a child of [parent title]?").
@@ -97,7 +142,7 @@ This document outlines a phased strategy for implementing the planned changes to
 - [ ] Add a small edit icon to the row of the section title to allow editing of the section tag.
 - [ ] Update documentation and README to explain the new grouping/tagging workflow.
 
-## Phase 6: Dock Icon Integration
+## Phase 7: Dock Icon Integration
 - Add a dock icon for the app
 - Implement logic to open or focus the app when the dock icon is clicked
 - Ensure compatibility with macOS conventions
@@ -105,7 +150,7 @@ This document outlines a phased strategy for implementing the planned changes to
 
 ---
 
-## Phase 7: Final QA & Documentation
+## Phase 8: Final QA & Documentation
 - Comprehensive testing of all new features and changes
 - Update user documentation and help guides
 - Gather user feedback (if possible)
