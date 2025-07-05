@@ -114,10 +114,10 @@ This document outlines a phased strategy for implementing the planned changes to
 
 
 ### Phase 5.5: Validation and Invariants
-- [ ] On every relevant operation (add, edit, drag, drop, remove), enforce:
-    - [ ] No reminder has both a `#p-` and `#i-` tag.
-    - [ ] Each group has at most one parent.
-    - [ ] Orphaned children (with `#i-<section>` but no parent) are handled gracefully (e.g., displayed as ungrouped or with a warning).
+- [✔] On every relevant operation (add, edit, drag, drop, remove), enforce:
+    - [✔] No reminder has both a `#p-` and `#i-` tag.
+    - [✔] Each group has at most one parent.
+    - [✔] Orphaned children (with `#i-<section>` but no parent) are handled gracefully (displayed as ungrouped with a warning icon on the right; clicking the warning lets the user adopt, ungroup, or cancel).
 
 ### Phase 5.6: Documentation
 - [ ] Update in-app help and README to explain the new grouping/tagging workflow and what the special tags mean.

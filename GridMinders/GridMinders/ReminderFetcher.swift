@@ -268,6 +268,14 @@ final class ReminderFetcher: ObservableObject {
 
     /// Set #p-<section> as the only Phase 5 tag in Notes (removes #i- if present)
     func setParentSectionTag(_ reminder: EKReminder, section: String) {
+        // Phase 5.5: Enforce at-most-one-parent per group
+        if reminders.contains(where: { $0.calendarItemIdentifier != reminder.calendarItemIdentifier && parseParentSectionTag($0)?.caseInsensitiveCompare(section) == .orderedSame }) {
+            print("[Phase5.5] Attempt to set duplicate parent tag #p-\(section) – already exists. Aborting.")
+            return
+        }
+        if hasParentAndChildTag(reminder) {
+            print("[Phase5.5] Warning: Reminder had both parent and child tag. Cleaning up.")
+        }
         removePhase5SectionTags(reminder)
         var notes = reminder.notes ?? ""
         if !notes.isEmpty { notes += " " }
@@ -278,6 +286,9 @@ final class ReminderFetcher: ObservableObject {
 
     /// Set #i-<section> as the only Phase 5 tag in Notes (removes #p- if present)
     func setChildSectionTag(_ reminder: EKReminder, section: String) {
+        if hasParentAndChildTag(reminder) {
+            print("[Phase5.5] Warning: Reminder had both parent and child tag. Cleaning up.")
+        }
         removePhase5SectionTags(reminder)
         var notes = reminder.notes ?? ""
         if (!notes.isEmpty) { notes += " " }

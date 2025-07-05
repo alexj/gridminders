@@ -98,6 +98,9 @@ struct ReminderGridView: View {
     @State private var pendingDrop: (parent: EKReminder, childID: String)? = nil
     @State private var showTagPrompt = false
     @State private var newSectionTag = ""
+    // Orphan resolution state
+    @State private var showOrphanResolutionPrompt = false
+    @State private var selectedOrphanReminder: EKReminder? = nil
 
     func onDropReminder(parent: EKReminder, droppedID: String) {
         // Use new Phase 5 tag helpers
@@ -193,6 +196,30 @@ struct ReminderGridView: View {
         }, message: {
             Text("Enter a tag for this section. The tag will be applied to both parent and child.")
         })
+        // Orphan resolution prompt
+        .alert("Resolve Orphaned Child", isPresented: $showOrphanResolutionPrompt, actions: {
+            if let orphan = selectedOrphanReminder, let orphanSection = fetcher.parseChildSectionTag(orphan) {
+                Button("Remove from group") {
+                    fetcher.removeChildSectionTag(orphan, section: orphanSection)
+                    showOrphanResolutionPrompt = false
+                }
+                // Find possible parents
+                let possibleParents = fetcher.reminders.filter {
+                    fetcher.parseParentSectionTag($0)?.caseInsensitiveCompare(orphanSection) == .orderedSame
+                }
+                ForEach(possibleParents, id: \.calendarItemIdentifier) { parent in
+                    Button("Adopt as child of \(parent.title)") {
+                        fetcher.setChildSectionTag(orphan, section: orphanSection)
+                        showOrphanResolutionPrompt = false
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {
+                showOrphanResolutionPrompt = false
+            }
+        }, message: {
+            Text("This reminder is tagged as a child (#i-) but there is no parent with #p-<section>. You can remove it from the group, or assign it to a parent if available.")
+        })
     }
 
     private func quadrantView(title: String, reminders: [EKReminder], important: Bool, urgent: Bool) -> some View {
@@ -213,21 +240,55 @@ struct ReminderGridView: View {
                     let visibleChildren = group.children.filter { reminders.contains($0) }
                     Phase5SectionView(section: group.section, parent: group.parent, children: visibleChildren, parentVisible: visibleParent, onDropReminder: onDropReminder, fetcher: fetcher)
                 }
-                // Ungrouped reminders
-                ForEach(ungrouped.indices, id: \.self) { index in
-                    let reminder = ungrouped[index]
+                ForEach(ungrouped, id: \.calendarItemIdentifier) { reminder in
+                    let orphanSection = fetcher.parseChildSectionTag(reminder)
+                    let isOrphan = orphanSection != nil && !fetcher.reminders.contains(where: { fetcher.parseParentSectionTag($0)?.caseInsensitiveCompare(orphanSection!) == .orderedSame })
                     HStack {
+                        // Complete button (left)
                         Button(action: {
                             fetcher.complete(reminder)
                         }) {
                             Image(systemName: "checkmark.circle")
                         }
                         .buttonStyle(BorderlessButtonStyle())
+                        // Title and tag
                         Text(reminder.title)
                             .padding(.leading, 16)
-                            .onDrag {
-                                NSItemProvider(object: reminder.calendarItemIdentifier as NSString)
+                        if let orphanSection = orphanSection {
+                            HStack(spacing: 0) {
+                                Text("#i-")
+                                Text(orphanSection)
+                                    .font(.caption)
+                                    .foregroundColor(isOrphan ? .yellow : .secondary)
                             }
+                        }
+                        Spacer()
+                        // Warning and ungroup icons (right)
+                        if let orphanSection = orphanSection, isOrphan {
+                            Button(action: {
+                                // Show orphan resolution prompt
+                                selectedOrphanReminder = reminder
+                                showOrphanResolutionPrompt = true
+                            }) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.yellow)
+                            }
+                            .buttonStyle(BorderlessButtonStyle())
+                            .help("Orphaned child: no parent with #p-\(orphanSection). Click to resolve.")
+                        }
+                        if orphanSection != nil {
+                            Button(action: {
+                                fetcher.removeChildSectionTag(reminder, section: orphanSection!)
+                            }) {
+                                Image(systemName: "xmark.circle")
+                                    .foregroundColor(.red)
+                            }
+                            .buttonStyle(BorderlessButtonStyle())
+                            .help("Remove from group")
+                        }
+                    }
+                    .onDrag {
+                        NSItemProvider(object: reminder.calendarItemIdentifier as NSString)
                     }
                     .onDrop(of: [UTType.text], isTargeted: nil) { providers in
                         if let provider = providers.first {
@@ -238,18 +299,6 @@ struct ReminderGridView: View {
                             return true
                         }
                         return false
-                    }
-                    .onTapGesture(count: 2) {
-                        let uuid = reminder.calendarItemIdentifier
-                        let url = URL(string: "x-apple-reminderkit://REMCDReminder/\(uuid)/details")
-                        if let url = url, NSWorkspace.shared.urlForApplication(toOpen: url) != nil {
-                            NSWorkspace.shared.open(url)
-                        } else {
-                            let alert = NSAlert()
-                            alert.messageText = "Cannot open reminder in Reminders app"
-                            alert.informativeText = "Your system does not support opening reminders directly. This feature may not be available on your version of macOS."
-                            alert.runModal()
-                        }
                     }
                 }
             }
