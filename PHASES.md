@@ -1,5 +1,12 @@
 # GridMinders App: Change Strategy & Phases
 
+## Project Infrastructure
+- [✔] Converted app to a proper Xcode project structure (no duplicate or legacy files)
+- [✔] Fixed build and linker issues (no more dynamic library output, app builds and runs as a true macOS app)
+- [✔] Configured Info.plist with NSRemindersUsageDescription
+- [✔] Added and configured Reminders entitlement in .entitlements file
+- [✔] Debugged and verified Reminders permission prompt and access
+
 ## Overview
 This document outlines a phased strategy for implementing the planned changes to the GridMinders app. Each phase is broken down into actionable items to ensure a smooth and maintainable rollout.
 
@@ -65,7 +72,7 @@ This document outlines a phased strategy for implementing the planned changes to
   - [✔] Allow user to specify a short, unique section/group tag (e.g., `#section-Q1Plan`) for parent reminders. (Colon is not supported; dash-based tags only.)
   - [✔] Grouping and parsing logic now only recognizes `#section-<short>` tags in title or notes. Fallback/pretty names are used for display only.
   - [✔] Enforce uniqueness of section tags within the app (prompt user or auto-append a number if needed).
-  - [ ] Add inline section tag editing UI so you can set or change section tags directly in the app.
+  - [✔] Add inline section tag editing UI so you can set or change section tags directly in the app. (SectionTagEditor.swift)
   - [ ] When displaying sections in the UI, show the short tag or fallback for clarity.
   - [✔] Parent/child grouping restored and robust to tag format.
 - [ ] Add drag-to-parent functionality:

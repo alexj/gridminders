@@ -1,7 +1,29 @@
 # GridMinders
 
-GridMinders is a simple macOS SwiftUI app that visualizes your Apple Reminders in an Eisenhower 2x2 grid.
-The reminders list updates automatically whenever tasks change in the Reminders app or sync via iCloud, so the grid stays current.
+**GridMinders** is a macOS SwiftUI app that visualizes your Apple Reminders in an Eisenhower 2x2 grid.
+
+---
+
+## Build & Run (Xcode Project)
+
+1. **Open the Project**
+   - Open `GridMinders.xcodeproj` in Xcode (version 14 or later recommended).
+
+2. **Build the App**
+   - Select the `GridMinders` app target.
+   - Use `Product > Build` (or press `Cmd+B`).
+
+3. **Run the App**
+   - Use `Product > Run` (or press `Cmd+R`).
+   - On first launch, you will be prompted to grant permission to access Reminders. Grant access for the app to function.
+
+**Note:**
+- Swift Package Manager (`Package.swift`) is no longer the primary build method. Use Xcode for all development and builds.
+- If you encounter issues with permissions, ensure that the app has "Reminders" access in System Settings > Privacy & Security > Reminders.
+
+---
+
+GridMinders updates automatically whenever tasks change in the Reminders app or sync via iCloud, so the grid stays current.
 
 The app requests permission to access the Reminders database using `EventKit`. Completed tasks are filtered out so only open reminders appear.
 
