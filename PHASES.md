@@ -80,19 +80,21 @@ This document outlines a phased strategy for implementing the planned changes to
   - [ ] On drop, assign the parent’s section tag to the child and update grouping in the UI.
   - [ ] If the drop target (parent) does not have a section tag, prompt the user to create or confirm a  short tag.
   - [ ] When a reminder is made a child, ensure it receives the parent’s section tag (remove any previous section tag from the child).
-- [ ] UI/UX improvements:
-  - [ ] Highlight drop targets and show a tooltip or prompt (e.g., "Make this a child of [parent title]?").
-  - [ ] Allow editing of section tags for parent reminders. Modify the implementation to only show the editing interface on when the user taps a small edit icon on the row of the section title
-  - [ ] When a parent reminder's section tag is renamed automatically update all child reminders to use the new tag.
-  - [ ] Warn or prevent if a section tag is not unique.
-  - [ ] Remove the white border around each quadrant 
-  - [ ] Remove the Select Lists button from the UI and replace it with a Settings menu, following macOS conventions (accessible via the menu bar - GridMinders > Settings > Select Lists functionality)
-  - [ ] Make the text size for section headers/parent Reminders two points larger and bold
-  - [ ] Indent the circle icon of child items; right now the icons are all in the same spot, but the text of child items is indented -- the entire line should be indented, maintaining the same spacing between icon and reminder title
-  - [ ] Add a small edit icon to the row of the section title to allow editing of the section tag.
+
+
+## Phase 5: UI/UX improvements
+- [ ] Highlight drop targets and show a tooltip or prompt (e.g., "Make this a child of [parent title]?").
+- [ ] Allow editing of section tags for parent reminders. Modify the implementation to only show the editing interface on when the user taps the section tag capsule next to the parent title.
+- [ ] When a parent reminder's section tag is renamed automatically update all child reminders to use the new tag.
+- [ ] Warn or prevent if a section tag is not unique.
+- [ ] Remove the white border around each quadrant 
+- [ ] Remove the Select Lists button from the UI and replace it with a Settings menu, following macOS conventions (accessible via the menu bar - GridMinders > Settings > Select Lists functionality)
+- [ ] Make the text size for section headers/parent Reminders two points larger and bold
+- [ ] Indent the circle icon of child items; right now the icons are all in the same spot, but the text of child items is indented -- the entire line should be indented, maintaining the same spacing between icon and reminder title
+- [ ] Add a small edit icon to the row of the section title to allow editing of the section tag.
 - [ ] Update documentation and README to explain the new grouping/tagging workflow.
 
-## Phase 5: Dock Icon Integration
+## Phase 6: Dock Icon Integration
 - Add a dock icon for the app
 - Implement logic to open or focus the app when the dock icon is clicked
 - Ensure compatibility with macOS conventions
@@ -100,7 +102,7 @@ This document outlines a phased strategy for implementing the planned changes to
 
 ---
 
-## Phase 6: Final QA & Documentation
+## Phase 7: Final QA & Documentation
 - Comprehensive testing of all new features and changes
 - Update user documentation and help guides
 - Gather user feedback (if possible)

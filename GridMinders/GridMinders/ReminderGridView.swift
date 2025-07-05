@@ -38,6 +38,26 @@ private struct SectionView: View {
                             .buttonStyle(BorderlessButtonStyle())
                             Text(parent.title)
                                 .bold()
+                            // Show section tag or fallback for clarity
+                            if !section.section.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                Text("#\(section.section)")
+                                    .font(.caption)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 2)
+                                    .background(Color.secondary.opacity(0.15))
+                                    .cornerRadius(8)
+                                    .foregroundColor(.secondary)
+                                    .accessibilityLabel("Section tag: \(section.section)")
+                            } else {
+                                Text("No Tag")
+                                    .font(.caption)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 2)
+                                    .background(Color.gray.opacity(0.10))
+                                    .cornerRadius(8)
+                                    .foregroundColor(.gray)
+                                    .accessibilityLabel("No section tag")
+                            }
                             // Inline section tag editing UI
                             SectionTagEditor(section: section, parent: parent, fetcher: fetcher)
 
