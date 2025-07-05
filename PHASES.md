@@ -73,7 +73,7 @@ This document outlines a phased strategy for implementing the planned changes to
   - [✔] Grouping and parsing logic now only recognizes `#section-<short>` tags in title or notes. Fallback/pretty names are used for display only.
   - [✔] Enforce uniqueness of section tags within the app (prompt user or auto-append a number if needed).
   - [✔] Add inline section tag editing UI so you can set or change section tags directly in the app. (SectionTagEditor.swift)
-  - [ ] When displaying sections in the UI, show the short tag or fallback for clarity.
+  - [✔] When displaying sections in the UI, show the short tag or fallback for clarity.
   - [✔] Parent/child grouping restored and robust to tag format.
 - [ ] Add drag-to-parent functionality:
   - [ ] Enable dragging one reminder onto another to make the first a child of the second.

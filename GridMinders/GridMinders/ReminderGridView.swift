@@ -7,6 +7,7 @@ import UniformTypeIdentifiers
 private struct SectionView: View {
     let section: (section: String, reminders: [EKReminder])
     let visibleReminders: [EKReminder]
+    let onDropReminder: (_ parent: EKReminder, _ droppedID: String) -> Void
     @ObservedObject var fetcher: ReminderFetcher
 
     var parent: EKReminder? {
@@ -18,6 +19,10 @@ private struct SectionView: View {
             return titleHasTag || notesHasTag
         }) ?? section.reminders.first
     }
+    @State private var pendingDrop: (parent: EKReminder, childID: String)? = nil
+    @State private var showTagPrompt = false
+    @State private var newSectionTag = ""
+
     var body: some View {
         // Always render parent+children as a single block, preserving order
         let parentID = parent?.calendarItemIdentifier
@@ -101,6 +106,17 @@ private struct SectionView: View {
                                     NSItemProvider(object: reminder.calendarItemIdentifier as NSString)
                                 }
                         }
+                        .onDrop(of: [UTType.text], isTargeted: nil) { providers in
+                            if let provider = providers.first {
+                                _ = provider.loadObject(ofClass: NSString.self) { object, _ in
+                                    guard let droppedID = object as? String else { return }
+                                    let parent = section.reminders[index]
+                                    onDropReminder(parent, droppedID)
+                                }
+                                return true
+                            }
+                            return false
+                        }
                         .onTapGesture(count: 2) {
                             let uuid = reminder.calendarItemIdentifier
                             let url = URL(string: "x-apple-reminderkit://REMCDReminder/\(uuid)/details")
@@ -121,13 +137,26 @@ private struct SectionView: View {
             }
         }
     }
-
 }
-
 
 struct ReminderGridView: View {
     @State private var showingListSelector = false
     @ObservedObject var fetcher: ReminderFetcher
+    @State private var pendingDrop: (parent: EKReminder, childID: String)? = nil
+    @State private var showTagPrompt = false
+    @State private var newSectionTag = ""
+
+    func onDropReminder(parent: EKReminder, droppedID: String) {
+        let parentTag = fetcher.parseSectionTag(parent)
+        if let tag = parentTag, !tag.isEmpty {
+            if let dropped = fetcher.reminders.first(where: { $0.calendarItemIdentifier == droppedID }) {
+                fetcher.setSectionTag(dropped, tag: tag, enforceUnique: false)
+            }
+        } else {
+            pendingDrop = (parent: parent, childID: droppedID)
+            showTagPrompt = true
+        }
+    }
 
     func categorize(_ reminder: EKReminder) -> (important: Bool, urgent: Bool) {
         // Phase 2: Updated logic for 'important' and 'urgent'
@@ -188,6 +217,25 @@ struct ReminderGridView: View {
             }
         }
         .padding()
+        .alert("Parent has no section tag.", isPresented: $showTagPrompt, actions: {
+            TextField("Section tag", text: $newSectionTag)
+            Button("OK") {
+                if let pending = pendingDrop, !newSectionTag.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    fetcher.setSectionTag(pending.parent, tag: newSectionTag)
+                    if let dropped = fetcher.reminders.first(where: { $0.calendarItemIdentifier == pending.childID }) {
+                        fetcher.setSectionTag(dropped, tag: newSectionTag)
+                    }
+                }
+                pendingDrop = nil
+                newSectionTag = ""
+            }
+            Button("Cancel", role: .cancel) {
+                pendingDrop = nil
+                newSectionTag = ""
+            }
+        }, message: {
+            Text("Enter a tag for this section. The tag will be applied to both parent and child.")
+        })
     }
 
     private func quadrantView(title: String, reminders: [EKReminder], important: Bool, urgent: Bool) -> some View {
@@ -205,7 +253,7 @@ struct ReminderGridView: View {
             List {
                 ForEach(sectioned, id: \.section) { section in
                     let visibleReminders = section.reminders.filter { reminders.contains($0) }
-                    SectionView(section: section, visibleReminders: visibleReminders, fetcher: fetcher)
+                    SectionView(section: section, visibleReminders: visibleReminders, onDropReminder: onDropReminder, fetcher: fetcher)
                 }
                 // Ungrouped reminders
                 ForEach(ungrouped.indices, id: \.self) { index in
@@ -218,69 +266,35 @@ struct ReminderGridView: View {
                         }
                         .buttonStyle(BorderlessButtonStyle())
                         Text(reminder.title)
+                            .padding(.leading, 16)
                             .onDrag {
                                 NSItemProvider(object: reminder.calendarItemIdentifier as NSString)
                             }
                     }
-                    .onTapGesture(count: 2) {
-                        if let url = URL(string: "x-apple-reminder://\(reminder.calendarItemIdentifier)") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    }
-                }
-                .onMove { indices, newOffset in
-                    fetcher.moveReminder(fromOffsets: indices, toOffset: newOffset)
-                }
-            }
-            .onDrop(of: [UTType.text], isTargeted: nil) { providers in
-                handleDrop(providers: providers, important: important, urgent: urgent)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .border(Color.gray)
-    }
-
-    private func handleDrop(providers: [NSItemProvider], important: Bool, urgent: Bool) -> Bool {
-        for provider in providers {
-            _ = provider.loadObject(ofClass: NSString.self) { object, _ in
-                guard let id = object as? NSString else { return }
-                let idString = id as String
-                DispatchQueue.main.async {
-                    if idString.hasPrefix("section:") {
-                        // Section drag: extract section name
-                        let sectionName = String(idString.dropFirst("section:".count))
-                        // Find all reminders in this section
-                        let sectionReminders = fetcher.reminders.filter { reminder in
-                            // Use the same parseSectionTag logic as ReminderFetcher
-                            let sources: [String?] = [reminder.title, reminder.notes]
-                            for textOpt in sources {
-                                guard let text = textOpt else { continue }
-                                let pattern = "#section-([A-Za-z0-9_-]+)"
-                                if let match = text.range(of: pattern, options: .regularExpression) {
-                                    let name = text[match].replacingOccurrences(of: "#section-", with: "")
-                                    if name.caseInsensitiveCompare(sectionName) == .orderedSame { return true }
-                                }
+                    .onDrop(of: [UTType.text], isTargeted: nil) { providers in
+                        if let provider = providers.first {
+                            _ = provider.loadObject(ofClass: NSString.self) { object, _ in
+                                guard let droppedID = object as? String else { return }
+                                onDropReminder(parent: reminder, droppedID: droppedID)
                             }
-                            return false
+                            return true
                         }
-                        // Optionally set undoManager from environment if available
-                        if fetcher.undoManager == nil, let window = NSApp.keyWindow {
-                            fetcher.undoManager = window.undoManager
+                        return false
+                    }
+                    .onTapGesture(count: 2) {
+                        let uuid = reminder.calendarItemIdentifier
+                        let url = URL(string: "x-apple-reminderkit://REMCDReminder/\(uuid)/details")
+                        if let url = url, NSWorkspace.shared.urlForApplication(toOpen: url) != nil {
+                            NSWorkspace.shared.open(url)
+                        } else {
+                            let alert = NSAlert()
+                            alert.messageText = "Cannot open reminder in Reminders app"
+                            alert.informativeText = "Your system does not support opening reminders directly. This feature may not be available on your version of macOS."
+                            alert.runModal()
                         }
-                        for reminder in sectionReminders {
-                            fetcher.modify(reminder, important: important, urgent: urgent)
-                        }
-                    } else if let reminder = fetcher.reminders.first(where: { $0.calendarItemIdentifier == idString }) {
-                        // Single reminder drag
-                        // Optionally set undoManager from environment if available
-                        if fetcher.undoManager == nil, let window = NSApp.keyWindow {
-                            fetcher.undoManager = window.undoManager
-                        }
-                        fetcher.modify(reminder, important: important, urgent: urgent)
                     }
                 }
             }
         }
-        return true
     }
 }

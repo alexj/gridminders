@@ -111,7 +111,7 @@ final class ReminderFetcher: ObservableObject {
     }
 
     /// Helper: Extracts section name from #section-<short> tag in notes or title. Only explicit tags are used for grouping.
-    private func parseSectionTag(_ reminder: EKReminder) -> String? {
+    func parseSectionTag(_ reminder: EKReminder) -> String? {
         // Look for #section-<short> in title or notes
         let sources: [String?] = [reminder.title, reminder.notes]
         let pattern = "#section-([A-Za-z0-9_-]+)"
@@ -141,14 +141,16 @@ final class ReminderFetcher: ObservableObject {
     }
     /// Set a section tag on a reminder (removes any existing section tag). Ensures uniqueness by auto-appending a number if needed. Returns the final tag used.
     @discardableResult
-    func setSectionTag(_ reminder: EKReminder, tag: String) -> String {
+    func setSectionTag(_ reminder: EKReminder, tag: String, enforceUnique: Bool = true) -> String {
         removeSectionTags(reminder)
         // Enforce uniqueness (case-insensitive)
         var finalTag = tag
-        var n = 2
-        while !isSectionTagUnique(finalTag, excluding: reminder) {
-            finalTag = "\(tag)\(n)"
-            n += 1
+        if enforceUnique {
+            var n = 2
+            while !isSectionTagUnique(finalTag, excluding: reminder) {
+                finalTag = "\(tag)\(n)"
+                n += 1
+            }
         }
         // Add to notes
         var notes = reminder.notes ?? ""
