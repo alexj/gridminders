@@ -221,9 +221,9 @@ struct ReminderGridView: View {
             TextField("Section tag", text: $newSectionTag)
             Button("OK") {
                 if let pending = pendingDrop, !newSectionTag.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    fetcher.setSectionTag(pending.parent, tag: newSectionTag)
+                    fetcher.setSectionTag(pending.parent, tag: newSectionTag, enforceUnique: false)
                     if let dropped = fetcher.reminders.first(where: { $0.calendarItemIdentifier == pending.childID }) {
-                        fetcher.setSectionTag(dropped, tag: newSectionTag)
+                        fetcher.setSectionTag(dropped, tag: newSectionTag, enforceUnique: false)
                     }
                 }
                 pendingDrop = nil
