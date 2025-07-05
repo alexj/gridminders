@@ -120,7 +120,7 @@ This document outlines a phased strategy for implementing the planned changes to
     - [✔] Orphaned children (with `#i-<section>` but no parent) are handled gracefully (displayed as ungrouped with a warning icon on the right; clicking the warning lets the user adopt, ungroup, or cancel).
 
 ### Phase 5.6: Documentation
-- [ ] Update in-app help and README to explain the new grouping/tagging workflow and what the special tags mean.
+- [✔] Update in-app help and README to explain the new grouping/tagging workflow and what the special tags mean. (README now documents the explicit parent-child tagging scheme, orphan handling, and new grouping logic.)
 
 
 ## Phase 6: UI/UX improvements

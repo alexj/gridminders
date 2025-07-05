@@ -41,11 +41,21 @@ The app requests permission to access the Reminders database using `EventKit`. C
 - The UI updates instantly after any drag-and-drop change.
 - Dragging a section parent moves all reminders in that section to the new quadrant and updates tags for all items in the section.
 
-## Section Grouping
+## Section Grouping and Parent-Child Tagging
 
-- Reminders can be grouped into sections using the `#section-Name` tag (case-insensitive, in the title or notes).
-- Section parents and children are displayed together in the correct quadrant.
-- When a section is moved to a different quadrant, all reminders in that section update their tags accordingly.
+GridMinders uses an explicit parent-child tagging scheme for robust section grouping:
+
+- **Parent reminders** are tagged in their Notes field with `#p-<section>`, e.g., `#p-ProjectX`.
+- **Child reminders** are tagged in their Notes field with `#i-<section>`, e.g., `#i-ProjectX`.
+- No reminder can have both a parent and child tag at the same time.
+- Each group (section) can only have one parent.
+- Children are always grouped under their parent in the grid.
+- When a parent is renamed, all children update to match the new tag.
+- When a parent is ungrouped or deleted, all children are ungrouped as well.
+- Orphaned children (with `#i-<section>` but no parent with `#p-<section>`) are displayed as ungrouped, with a yellow warning icon. Clicking the warning lets you adopt the child into an available parent, ungroup it, or cancel.
+- Tags are normalized: spaces, colons, and special characters are replaced with dashes; multiple dashes are collapsed.
+
+**Legacy:** The old `#section-Name` tag is no longer used for grouping.
 
 ## Sorting and Manual Reordering
 
@@ -86,4 +96,4 @@ This will launch the GridMinders app on your Mac.
 **Limitations**
 - Manual sorting order is not synced to the Reminders app due to EventKit API limitations.
 - Quadrant assignment is based solely on tags (`#important`, `#urgent`).
-- Section grouping is based on the `#section-Name` tag.
+- Section grouping is based on explicit parent-child tags in Notes: `#p-<section>` for parents and `#i-<section>` for children. Orphaned children are visually flagged and can be resolved in-app.
