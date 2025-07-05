@@ -84,16 +84,16 @@ This document outlines a phased strategy for implementing the planned changes to
 ## Phase 5: Change grouping structure
 
 ### Phase 5.1: Tagging Conventions & Parsing
-- [ ] Implement new tag structure:
-    - [ ] Parent reminders use a tag of the form `#p-<section>` in the Notes field.
-    - [ ] Child reminders use a tag of the form `#i-<section>` in the Notes field.
-    - [ ] The `<section>` part is a user-chosen identifier shared by both parent and children.
-    - [ ] Enforce that a reminder cannot have both a `#p-` and `#i-` tag at the same time.
-- [ ] Update reminder parsing logic to:
-    - [ ] Identify parents by `#p-<section>` in Notes.
-    - [ ] Identify children by `#i-<section>` in Notes.
-    - [ ] Group reminders by the shared `<section>` identifier.
-    - [ ] Treat reminders with neither tag as ungrouped.
+- [x] Implement new tag structure:
+    - [x] Parent reminders use a tag of the form `#p-<section>` in the Notes field.
+    - [x] Child reminders use a tag of the form `#i-<section>` in the Notes field.
+    - [x] The `<section>` part is a user-chosen identifier shared by both parent and children.
+    - [x] Enforce that a reminder cannot have both a `#p-` and `#i-` tag at the same time.
+- [x] Update reminder parsing logic to:
+    - [x] Identify parents by `#p-<section>` in Notes.
+    - [x] Identify children by `#i-<section>` in Notes.
+    - [x] Group reminders by the shared `<section>` identifier.
+    - [x] Treat reminders with neither tag as ungrouped.
 
 ### Phase 5.2: UI Grouping & Display
 - [ ] Display each group with the parent (`#p-<section>`) as the group header.

@@ -119,6 +119,47 @@ final class ReminderFetcher: ObservableObject {
         reminders.filter { parseSectionTag($0) == nil }
     }
 
+    // PHASE 5.1: Helpers for new parent/child tag structure in Notes
+    /// Returns the parent section tag if present (e.g., "test" for #p-test)
+    func parseParentSectionTag(_ reminder: EKReminder) -> String? {
+        guard let notes = reminder.notes else { return nil }
+        let pattern = "#p-([A-Za-z0-9_-]+)"
+        if let match = notes.range(of: pattern, options: .regularExpression) {
+            let name = notes[match].replacingOccurrences(of: "#p-", with: "")
+            if !name.isEmpty { return String(name) }
+        }
+        return nil
+    }
+    /// Returns the child section tag if present (e.g., "test" for #i-test)
+    func parseChildSectionTag(_ reminder: EKReminder) -> String? {
+        guard let notes = reminder.notes else { return nil }
+        let pattern = "#i-([A-Za-z0-9_-]+)"
+        if let match = notes.range(of: pattern, options: .regularExpression) {
+            let name = notes[match].replacingOccurrences(of: "#i-", with: "")
+            if !name.isEmpty { return String(name) }
+        }
+        return nil
+    }
+    /// Returns true if reminder has both a parent and child tag (should not be allowed)
+    func hasParentAndChildTag(_ reminder: EKReminder) -> Bool {
+        parseParentSectionTag(reminder) != nil && parseChildSectionTag(reminder) != nil
+    }
+    /// Returns the section tag for grouping (parent or child, prioritizing parent)
+    func parsePhase5SectionTag(_ reminder: EKReminder) -> (role: String, section: String)? {
+        if let parent = parseParentSectionTag(reminder) {
+            return ("parent", parent)
+        } else if let child = parseChildSectionTag(reminder) {
+            return ("child", child)
+        }
+        return nil
+    }
+    /// Normalize/truncate a string for use as a fallback section tag
+    private func normalizeSectionTag(_ s: String?) -> String {
+        guard let s = s else { return "" }
+        let alphanumerics = s.lowercased().filter { $0.isLetter || $0.isNumber }
+        return String(alphanumerics.prefix(10))
+    }
+
     /// Helper: Extracts section name from #section-<short> tag in notes or title. Only explicit tags are used for grouping.
     func parseSectionTag(_ reminder: EKReminder) -> String? {
         // Look for #section-<short> in title or notes
@@ -136,12 +177,7 @@ final class ReminderFetcher: ObservableObject {
         // Do NOT fallback for grouping
         return nil
     }
-    /// Normalize/truncate a string for use as a fallback section tag
-    private func normalizeSectionTag(_ s: String?) -> String {
-        guard let s = s else { return "" }
-        let alphanumerics = s.lowercased().filter { $0.isLetter || $0.isNumber }
-        return String(alphanumerics.prefix(10))
-    }
+
     /// Check if a section tag is unique among all reminders
     func isSectionTagUnique(_ tag: String, excluding reminder: EKReminder? = nil) -> Bool {
         let allTags = reminders.compactMap { parseSectionTag($0) }
