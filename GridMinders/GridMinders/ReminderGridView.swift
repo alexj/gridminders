@@ -9,12 +9,21 @@ private struct SectionView: View {
     // Sorted so parent is always first
     var sortedReminders: [EKReminder] {
         let tag = "#section-" + section.section
+        // If two reminders both just received the tag, prefer the one that had the tag first (the drop target, i.e., the parent)
+        // We'll assume the parent is the one whose tag is present in the notes and was present in the reminders array before the drag.
+        // To do this robustly, we'll sort so that if only one has the tag in the title, it is first; otherwise, the one whose notes contains the tag and whose title does not is first.
         return section.reminders.sorted { lhs, rhs in
-            let lhsIsParent = lhs.title.range(of: tag, options: .caseInsensitive) != nil || (lhs.notes?.range(of: tag, options: .caseInsensitive) ?? nil) != nil
-            let rhsIsParent = rhs.title.range(of: tag, options: .caseInsensitive) != nil || (rhs.notes?.range(of: tag, options: .caseInsensitive) ?? nil) != nil
-            if lhsIsParent && !rhsIsParent { return true }
-            if !lhsIsParent && rhsIsParent { return false }
-            return false // preserve original order otherwise
+            let lhsHasTagInTitle = lhs.title.range(of: tag, options: .caseInsensitive) != nil
+            let rhsHasTagInTitle = rhs.title.range(of: tag, options: .caseInsensitive) != nil
+            if lhsHasTagInTitle && !rhsHasTagInTitle { return true }
+            if !lhsHasTagInTitle && rhsHasTagInTitle { return false }
+            // If both or neither have tag in title, check notes
+            let lhsHasTagInNotes = (lhs.notes?.range(of: tag, options: .caseInsensitive) ?? nil) != nil
+            let rhsHasTagInNotes = (rhs.notes?.range(of: tag, options: .caseInsensitive) ?? nil) != nil
+            if lhsHasTagInNotes && !rhsHasTagInNotes { return true }
+            if !lhsHasTagInNotes && rhsHasTagInNotes { return false }
+            // Otherwise preserve original order
+            return false
         }
     }
     let visibleReminders: [EKReminder]
@@ -232,10 +241,12 @@ struct ReminderGridView: View {
             TextField("Section tag", text: $newSectionTag)
             Button("OK") {
                 if let pending = pendingDrop, !newSectionTag.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    fetcher.setSectionTag(pending.parent, tag: newSectionTag, enforceUnique: false)
+                    fetcher.setSectionTagInTitle(pending.parent, tag: newSectionTag, enforceUnique: false)
                     if let dropped = fetcher.reminders.first(where: { $0.calendarItemIdentifier == pending.childID }) {
                         fetcher.setSectionTag(dropped, tag: newSectionTag, enforceUnique: false)
                     }
+                    // Move parent to front so it always displays as parent
+                    fetcher.moveReminderToFront(pending.parent)
                 }
                 pendingDrop = nil
                 newSectionTag = ""

@@ -39,6 +39,15 @@ final class ReminderFetcher: ObservableObject {
     }
     var undoManager: UndoManager?
 
+    /// Move a reminder to the front of the reminders array by calendarItemIdentifier
+    func moveReminderToFront(_ reminder: EKReminder) {
+        guard let idx = reminders.firstIndex(where: { $0.calendarItemIdentifier == reminder.calendarItemIdentifier }) else { return }
+        var newReminders = reminders
+        let item = newReminders.remove(at: idx)
+        newReminders.insert(item, at: 0)
+        reminders = newReminders
+    }
+
     @Published private(set) var calendars: [EKCalendar] = []
     @Published var includedCalendarIDs: Set<String> = [] // IDs of included lists
     @Published var excludedCalendarIDs: Set<String> = [] // IDs of excluded lists
@@ -161,12 +170,40 @@ final class ReminderFetcher: ObservableObject {
         do { try store.save(reminder, commit: true); loadReminders() } catch { print("Failed to set section tag", error) }
         return finalTag
     }
+
+    /// Set a section tag on both title and notes (for parent reminder during grouping)
+    @discardableResult
+    func setSectionTagInTitle(_ reminder: EKReminder, tag: String, enforceUnique: Bool = true) -> String {
+        removeSectionTags(reminder)
+        var finalTag = tag
+        if enforceUnique {
+            var n = 2
+            while !isSectionTagUnique(finalTag, excluding: reminder) {
+                finalTag = "\(tag)\(n)"
+                n += 1
+            }
+        }
+        // Add to notes
+        var notes = reminder.notes ?? ""
+        if !notes.isEmpty { notes += " " }
+        notes += "#section-" + finalTag
+        reminder.notes = notes
+        // Also add to title if not present
+        if reminder.title.range(of: "#section-", options: .caseInsensitive) == nil {
+            reminder.title += " #section-" + finalTag
+        }
+        do { try store.save(reminder, commit: true); loadReminders() } catch { print("Failed to set section tag in title", error) }
+        return finalTag
+    }
+
     /// Remove all section tags from a reminder
     func removeSectionTags(_ reminder: EKReminder) {
         var notes = reminder.notes ?? ""
         let pattern = "(\\s|^)#section-[A-Za-z0-9_-]+(\\s|$)"
         let regex = try! NSRegularExpression(pattern: pattern, options: .caseInsensitive)
         notes = regex.stringByReplacingMatches(in: notes, options: [], range: NSRange(location: 0, length: notes.utf16.count), withTemplate: " ")
+        notes = notes.replacingOccurrences(of: "  ", with: " ")
+        notes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
         notes = notes.replacingOccurrences(of: "  ", with: " ").trimmingCharacters(in: .whitespacesAndNewlines)
         reminder.notes = notes.isEmpty ? nil : notes
         do { try store.save(reminder, commit: true); loadReminders() } catch { print("Failed to remove section tag", error) }

@@ -84,12 +84,14 @@ This document outlines a phased strategy for implementing the planned changes to
 
 ## Phase 5: UI/UX improvements
 - [ ] Make the entire row of an item or group draggable
+- [ ] make the entire area of a parent and its children a a drop target for new items to be assigned to the parent
 - [ ] Highlight drop targets and show a tooltip or prompt (e.g., "Make this a child of [parent title]?").
 - [ ] Allow editing of section tags for parent reminders. Modify the implementation to only show the editing interface on when the user taps the section tag capsule next to the parent title.
 - [ ] When a parent reminder's section tag is renamed automatically update all child reminders to use the new tag.
 - [ ] Warn or prevent if a section tag is not unique.
 - [ ] Remove the white border around each quadrant 
 - [ ] Remove the Select Lists button from the UI and replace it with a Settings menu, following macOS conventions (accessible via the menu bar - GridMinders > Settings > Select Lists functionality)
+- [ ] when showing the Select Lists modal, alphabetize the list of lists
 - [ ] Make the text size for section headers/parent Reminders two points larger and bold
 - [ ] Indent the circle icon of child items; right now the icons are all in the same spot, but the text of child items is indented -- the entire line should be indented, maintaining the same spacing between icon and reminder title
 - [ ] Add a small edit icon to the row of the section title to allow editing of the section tag.
