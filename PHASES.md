@@ -75,39 +75,32 @@ This document outlines a phased strategy for implementing the planned changes to
   - [✔] Add inline section tag editing UI so you can set or change section tags directly in the app. (SectionTagEditor.swift)
   - [✔] When displaying sections in the UI, show the short tag or fallback for clarity.
   - [✔] Parent/child grouping restored and robust to tag format.
-- [ ] Add drag-to-parent functionality:
-  - [ ] Enable dragging one reminder onto another to make the first a child of the second.
-  - [ ] On drop, assign the parent’s section tag to the child and update grouping in the UI.
-  - [ ] If the drop target (parent) does not have a section tag, prompt the user to create or confirm a  short tag.
-  - [ ] When a reminder is made a child, ensure it receives the parent’s section tag (remove any previous section tag from the child).
 
 ## Phase 5: Change grouping structure
 
 ### Phase 5.1: Tagging Conventions & Parsing
-- [x] Implement new tag structure:
-    - [x] Parent reminders use a tag of the form `#p-<section>` in the Notes field.
-    - [x] Child reminders use a tag of the form `#i-<section>` in the Notes field.
-    - [x] The `<section>` part is a user-chosen identifier shared by both parent and children.
-    - [x] Enforce that a reminder cannot have both a `#p-` and `#i-` tag at the same time.
-- [x] Update reminder parsing logic to:
-    - [x] Identify parents by `#p-<section>` in Notes.
-    - [x] Identify children by `#i-<section>` in Notes.
-    - [x] Group reminders by the shared `<section>` identifier.
-    - [x] Treat reminders with neither tag as ungrouped.
+- [✔] Implement new tag structure:
+    - [✔] Parent reminders use a tag of the form `#p-<section>` in the Notes field.
+    - [✔] Child reminders use a tag of the form `#i-<section>` in the Notes field.
+    - [✔] The `<section>` part is a user-chosen identifier shared by both parent and children.
+    - [✔] Enforce that a reminder cannot have both a `#p-` and `#i-` tag at the same time.
+- [✔] Update reminder parsing logic to:
+    - [✔] Identify parents by `#p-<section>` in Notes.
+    - [✔] Identify children by `#i-<section>` in Notes.
+    - [✔] Group reminders by the shared `<section>` identifier.
+    - [✔] Treat reminders with neither tag as ungrouped.
 
 ### Phase 5.2: UI Grouping & Display
-- [x] Display each group with the parent (`#p-<section>`) as the group header.
-- [x] Display all children (`#i-<section>`) under the parent.
-- [x] Prevent a reminder from being both parent and child in the same or different groups.
-
-> **2025-07-05:** UI now displays each group with the parent (#p-<section>) as the header and all children (#i-<section>) under the parent, using the new tag structure. Legacy grouping and SectionView have been removed. Ready for Phase 5.3.
+- [✔] Display each group with the parent (`#p-<section>`) as the group header.
+- [✔] Display all children (`#i-<section>`) under the parent.
+- [✔] Prevent a reminder from being both parent and child in the same or different groups.
 
 ### Phase 5.3: Drag-and-Drop Grouping
-- [ ] On drag-and-drop:
-    - [ ] If the drop target (potential parent) has no group tag, prompt for a section name.
-    - [ ] Assign `#p-<section>` to the drop target (parent) in Notes.
-    - [ ] Assign `#i-<section>` to the dragged reminder (child) in Notes, removing any previous `#p-` or `#i-` tags from it.
-    - [ ] If the parent already has a `#p-<section>` tag, assign the corresponding `#i-<section>` tag to the dragged reminder.
+- [✔] On drag-and-drop:
+    - [✔] If the drop target (potential parent) has no group tag, prompt for a section name.
+    - [✔] Assign `#p-<section>` to the drop target (parent) in Notes.
+    - [✔] Assign `#i-<section>` to the dragged reminder (child) in Notes, removing any previous `#p-` or `#i-` tags from it.
+    - [✔] If the parent already has a `#p-<section>` tag, assign the corresponding `#i-<section>` tag to the dragged reminder.
 
 ### Phase 5.4: Tag Editing and Consistency
 - [ ] When editing a parent’s group tag (renaming the section):
@@ -116,6 +109,7 @@ This document outlines a phased strategy for implementing the planned changes to
     - [ ] Enforce uniqueness of section names (no two parents with the same `#p-<section>`).
 - [ ] When a child is removed from a group, remove its `#i-<section>` tag from Notes.
 - [ ] When a parent is deleted or ungrouped, remove its `#p-<section>` tag and update all children to remove their `#i-<section>` tags (or prompt for new grouping).
+- [ ] If a tag is entered with a space, colon or special character other than a dash, replace the character with a dash. If there are two or more dashes in a row, replace them with a single dash.
 
 ### Phase 5.5: Validation and Invariants
 - [ ] On every relevant operation (add, edit, drag, drop, remove), enforce:
